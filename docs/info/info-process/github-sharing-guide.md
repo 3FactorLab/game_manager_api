@@ -72,19 +72,19 @@ Debido a que ignoramos `.env` por seguridad, tus compañeros necesitarán config
 
 Diles que copien el archivo `.env.example` a uno nuevo llamado `.env` y rellenen estos valores que tú les pasarás:
 
-| Variable       | Descripción              | ¿Compartir valor real?                                                                                        |
-| :------------- | :----------------------- | :------------------------------------------------------------------------------------------------------------ |
-| `PORT`         | Puerto del servidor      | Sí, usen `3500` por defecto.                                                                                  |
-| `MONGODB_URI`  | Conexión a Base de Datos | **SÍ (Privado)**. Pásales tu string de conexión si van a usar tu misma DB de desarrollo, o que creen la suya. |
-| `JWT_SECRET`   | Firma de tokens          | **SÍ (Privado)**. Pásales el valor `banumerchantman654321` (o cambienlo todos).                               |
-| `RAWG_API_KEY` | API de Videojuegos       | **SÍ**. Necesitan una key válida. Pásales la tuya o que saquen una gratis.                                    |
-| `NODE_ENV`     | Entorno                  | `development`                                                                                                 |
+| Variable       | Descripción              | ¿Compartir valor real?                                                                               |
+| :------------- | :----------------------- | :--------------------------------------------------------------------------------------------------- |
+| `PORT`         | Puerto del servidor      | Sí, usen `3500` por defecto.                                                                         |
+| `MONGODB_URI`  | Conexión a Base de Datos | **SÍ (Privado)**. Pásales tu string de conexión por canal seguro (o que usen uno local).             |
+| `JWT_SECRET`   | Firma de tokens          | **SÍ (Privado)**. Pásales el valor real por privado (o que generen uno nuevo). **NO SUBIR AL REPO**. |
+| `RAWG_API_KEY` | API de Videojuegos       | **SÍ**. Necesitan una key válida. Pásales la tuya o que saquen una gratis en rawg.io.                |
+| `NODE_ENV`     | Entorno                  | `development`                                                                                        |
 
 ## 3. Resumen de Flujo de Trabajo
 
-1. **Tú**: Actualizas `.gitignore` y subes `.env.example`.
-2. **Tú**: Haces commit y push.
-3. **Tú**: Les envías los valores secretos por privado.
-4. **Ellos**: Clonan el repo.
-5. **Ellos**: Renombran `.env.example` a `.env` y pegan los secretos.
-6. **Resultado**: ¡Todos corriendo el proyecto sin conflictos de archivos basura!
+1.  **Tú**: Actualizas `.gitignore` y subes `.env.example`.
+2.  **Tú**: Haces commit y push.
+3.  **Tú**: Les envías los valores secretos por privado.
+4.  **Ellos**: Clonan el repo.
+5.  **Ellos**: Renombran `.env.example` a `.env` y pegan los secretos.
+6.  **Resultado**: ¡Todos corriendo el proyecto sin conflictos de archivos basura!
