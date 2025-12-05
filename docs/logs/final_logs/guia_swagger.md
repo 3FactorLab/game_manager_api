@@ -32,7 +32,7 @@ La mayoría de los endpoints están protegidos por **JWT (JSON Web Token)**. Deb
 
 1.  Sube al inicio de la página y haz clic en el botón **Authorize** 🔓.
 2.  En el cuadro de texto `Value`, escribe la palabra `Bearer` seguida de un espacio y tu token.
-    - **Formato:** `Bearer eyJhbGciOiJIUzI1Ni...`
+    - **Formato:** `Bearer eyJhbGciOiJIUzI1Ni...`(deberia funcionar sin Bearer)
 3.  Haz clic en **Authorize** y luego en **Close**.
 4.  El candado ahora aparecerá cerrado 🔒, lo que significa que estás listo para probar endpoints protegidos.
 
