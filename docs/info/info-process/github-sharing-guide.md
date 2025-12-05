@@ -9,46 +9,57 @@ Este archivo `.gitignore` está diseñado para ignorar la "basura" específica d
 **Acción:** Copia esto en tu `.gitignore`.
 
 ```gitignore
-# --- Dependencias ---
+# Dependencias
 node_modules/
-# package-lock.json <- ¡NO IGNORAR! Es vital para que todos tengan las mismas versiones.
+# package-lock.json NO se ignora, se debe subir para asegurar versiones.
 
-# --- Seguridad y Secretos (CRÍTICO) ---
+# Variables de entorno (¡Muy importante!)
 .env
 .env.test
 .env.production
 .env.local
 
-# --- Logs y Depuración ---
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 logs/
 *.log
 
-# --- Sistema Operativo: Mac (Tu PC) ---
+# Sistema Operativo (Evita archivos basura de Mac/Windows)
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-
-# --- Sistema Operativo: Windows (Tu Equipo) ---
-Thumbs.db
 ehthumbs.db
-desktop.ini
-$RECYCLE.BIN/
+Thumbs.db
 
-# --- Editores de Código (Configs personales) ---
-.idea/             # IntelliJ / WebStorm
-.vscode/           # VS Code settings personales
-*.swp              # Vim
-*.sublime-workspace # Sublime Text
+# IDEs y Editores (Configuraciones personales de cada desarrollador)
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
 
-# --- Archivos Generados / Build ---
+# Archivos de subida (Contenido generado dinámicamente)
+uploads/
+# data/*.json # 'data/games.json' se comparte como Seed Data.
+
+# Build (Cada dev debe generar su propio build)
 dist/
 build/
+out/
+
+# Testing
 coverage/
+test_output.txt
+junit.xml
+
+# Docker
+# ¡NO ignorar .dockerignore! Es esencial para el build.
+# .dockerignore
 ```
 
 ## 2. Archivos para Compartir Manualmente

@@ -1,6 +1,6 @@
 # Dependencias
 node_modules/
-package-lock.json # OPCIONAL: Mantenlo si usas npm para asegurar versiones exactas.
+# package-lock.json NO se ignora, se debe subir para asegurar versiones.
 
 # Variables de entorno (¡Muy importante!)
 .env
@@ -34,7 +34,7 @@ Thumbs.db
 
 # Archivos de subida (Contenido generado dinámicamente)
 uploads/
-# data/*.json # Descomentar si 'data' contiene archivos generados en runtime.
+# data/*.json # 'data/games.json' se comparte como Seed Data.
 
 # Build (Cada dev debe generar su propio build)
 dist/
@@ -48,35 +48,4 @@ junit.xml
 
 # Docker
 # ¡NO ignorar .dockerignore! Es esencial para el build.
-# .dockerignore
-
-
-# --- Antiguo ---
-
-# # Dependencias
-# node_modules/
-
-# # # Variables de entorno (¡Muy importante!)
-# .env
-
-# # Logs
-# npm-debug.log*
-# yarn-debug.log*
-# yarn-error.log*
-
-# # Sistema Operativo
-# .DS_Store
-# Thumbs.db
-
-# #Archivos de subida
-# uploads/
-
-# # Build
-# dist/
-
-# # Testing
-# coverage/
-# test_output.txt
-
-# # Docker
 # .dockerignore
