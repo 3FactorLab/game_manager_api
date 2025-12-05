@@ -1,0 +1,306 @@
+/**
+ * @file game.routes.ts
+ * @description Defines routes for the global game catalog.
+ * Includes Swagger documentation for each endpoint.
+ */
+import express from "express";
+import {
+  create,
+  search,
+  getOne,
+  deleteGame,
+  updateGame,
+  searchExternal,
+  createFromRAWG,
+} from "../controllers/game.controller";
+import checkAuth from "../middleware/auth.middleware";
+import { isAdmin } from "../middleware/role.middleware";
+import {
+  validateCreateGame,
+  updateCatalogGameValidator,
+  validateSearchExternal,
+  validateCreateFromRAWG,
+  searchGameValidator,
+} from "../validators/game.validator";
+import upload from "../middleware/upload.middleware";
+
+const router = express.Router();
+
+router.use(checkAuth);
+
+/**
+ * @swagger
+ * /api/games:
+ *   get:
+ *     summary: Search games in catalog
+ *     tags: [Games]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Search by title
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Items per page
+ *       - in: query
+ *         name: genre
+ *         schema:
+ *           type: string
+ *         description: Filter by genre
+ *       - in: query
+ *         name: platform
+ *         schema:
+ *           type: string
+ *         description: Filter by platform
+ *     responses:
+ *       200:
+ *         description: List of games
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/", searchGameValidator, search);
+
+/**
+ * @swagger
+ * /api/games:
+ *   post:
+ *     summary: Add a game to the global catalog
+ *     tags: [Games]
+
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - genre
+ *               - platform
+ *             properties:
+ *               title:
+ *                 type: string
+ *               genre:
+ *                 type: string
+ *               platform:
+ *                 type: string
+ *               developer:
+ *                 type: string
+ *               publisher:
+ *                 type: string
+ *               score:
+ *                 type: number
+ *               price:
+ *                 type: number
+ *               currency:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Game created successfully
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post(
+  "/",
+  checkAuth,
+  isAdmin,
+  upload.single("image"),
+  validateCreateGame,
+  create
+);
+
+/**
+ * @swagger
+ * /api/games/search:
+ *   get:
+ *     summary: Search games in RAWG database (External)
+ *     tags: [Games]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search query
+ *     responses:
+ *       200:
+ *         description: List of games from RAWG
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/search", checkAuth, validateSearchExternal, searchExternal);
+
+/**
+ * @swagger
+ * /api/games/{id}:
+ *   get:
+ *     summary: Get game details
+ *     tags: [Games]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Game details
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/:id", getOne);
+
+/**
+ * @swagger
+ * /api/games/{id}:
+ *   delete:
+ *     summary: Delete a game from the catalog (Admin only)
+ *     tags: [Games]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Game deleted
+ *       403:
+ *         description: Access denied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Game not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.delete("/:id", isAdmin, deleteGame);
+
+/**
+ * @swagger
+ * /api/games/{id}:
+ *   put:
+ *     summary: Update a game
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The game ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               genre:
+ *                 type: string
+ *               platform:
+ *                 type: string
+ *               developer:
+ *                 type: string
+ *               publisher:
+ *                 type: string
+ *               score:
+ *                 type: number
+ *               price:
+ *                 type: number
+ *               currency:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Game updated successfully
+ *       404:
+ *         description: Game not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.put(
+  "/:id",
+  checkAuth,
+  isAdmin,
+  upload.single("image"),
+  upload.single("image"),
+  updateCatalogGameValidator,
+  updateGame
+);
+
+/**
+ * @swagger
+ * /api/games/from-rawg:
+ *   post:
+ *     summary: Create a game from RAWG data
+ *     tags: [Games]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rawgId
+ *             properties:
+ *               rawgId:
+ *                 type: integer
+ *               steamAppId:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Game created successfully
+ */
+router.post(
+  "/from-rawg",
+  checkAuth,
+  isAdmin,
+  validateCreateFromRAWG,
+  createFromRAWG
+);
+
+export default router;
