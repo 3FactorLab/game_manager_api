@@ -168,4 +168,82 @@ npm test
 Desarrollado con ❤️ por **AndyDev**.
 
 ---
+
 # game_manager_api
+
+## 📊 Diagrama de Arquitectura
+
+```mermaid
+flowchart TD
+    %% Nodos Externos
+    Client([👤 Cliente / Frontend])
+    DB[(🗄️ Base de Datos MongoDB)]
+    ExternalAPIs[☁️ APIs Externas\nRAWG / Steam]
+
+    %% Capas del Backend
+    Routes["📍 Rutas (Routes)"]
+
+    %% Middlewares
+    AuthMW["🔑 Auth Middleware"]
+    RoleMW["👮 Role Middleware"]
+    ValidMW["✅ Validator Middleware"]
+    ErrorMW["🚨 Error Middleware"]
+
+    %% Componentes Principales
+    Controller["🤵 Controlador"]
+    DTO["📦 DTOs"]
+
+    %% Servicios
+    CoreService["🧠 Servicio Core"]
+    IntegrationService["🔌 Servicio Integración\n(RAWG/Steam + Caché)"]
+    CronService["⏱️ Cron Service"]
+
+    Model["📄 Modelo Mongoose"]
+
+    %% Flujo Principal
+    Client -->|1. Request| Routes
+    Routes --> AuthMW
+    AuthMW --> RoleMW
+    RoleMW --> ValidMW
+    ValidMW --> Controller
+
+    %% Validaciones
+    ValidMW -.-> DTO
+    Controller -.-> DTO
+
+    %% Lógica de Negocio
+    Controller -->|2. Llama| CoreService
+    Controller -->|2. Llama| IntegrationService
+
+    %% Interacción con Datos y APIs
+    CoreService -->|3. Guarda/Lee| Model
+    IntegrationService -->|3. Consulta| ExternalAPIs
+    IntegrationService -->|4. Procesa| Model
+
+    %% Automatización
+    CronService -.->|Actualiza Precios| Model
+
+    %% Persistencia
+    Model <-->|5. DB Ops| DB
+
+    %% Retorno
+    CoreService -->|6. Retorna| Controller
+    IntegrationService -->|6. Retorna| Controller
+    Controller -->|7. Response JSON| Client
+
+    %% Manejo de Errores
+    Controller -.->|Si falla| ErrorMW
+    ErrorMW -.->|Error Response| Client
+
+    %% Estilos
+    style Client fill:#FFF9C4,stroke:#FBC02D,color:#000
+    style DB fill:#C8E6C9,stroke:#388E3C,color:#000
+    style ExternalAPIs fill:#E1BEE7,stroke:#8E24AA,color:#000
+
+    style Routes fill:#FFFFFF,stroke:#333,color:#000
+    style Controller fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
+    style CoreService fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
+    style IntegrationService fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
+    style CronService fill:#FFECB3,stroke:#FFC107,color:#000
+    style Model fill:#FFFFFF,stroke:#2E7D32,stroke-width:2px,color:#000
+```
