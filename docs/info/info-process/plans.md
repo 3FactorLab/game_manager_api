@@ -35,19 +35,19 @@ Actualmente, el sistema confía en que el `steamAppId` almacenado es correcto y 
 
 ---
 
-## 🌍 Internacionalización y Moneda
-
-### 1. Soporte Multi-Divisa
-
-- **Problema**: Actualmente asumimos USD (`cc=us`).
-- **Solución**: Guardar precios en un mapa: `prices: { usd: 59.99, eur: 49.99 }`.
-- **Implementación**: El Cron Job debería consultar Steam con `cc=us` y `cc=eu` secuencialmente.
-
----
-
 ## ⚡️ Optimización de Rendimiento
 
 ### 1. Colas de Trabajo (BullMQ / Redis)
 
 - **Problema**: Si el catálogo crece a 10,000 juegos, el Cron Job actual podría tardar demasiado y bloquear recursos.
 - **Solución**: Mover la actualización de precios a una cola de trabajos en segundo plano, procesando juegos en lotes pequeños (concurrency control).
+
+---
+
+## 📊 Monitoreo y Logging
+
+### 1. Persistencia de Logs (Archivos)
+
+- **Problema**: Actualmente los logs solo se muestran en consola y se pierden al reiniciar el servidor.
+- **Solución**: Configurar `winston` para escribir logs rotativos en archivos (ej: `logs/error-%DATE%.log` y `logs/combined-%DATE%.log`) usando `winston-daily-rotate-file`.
+- **Beneficio**: Permite auditoría histórica de errores y accesos.

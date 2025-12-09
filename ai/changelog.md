@@ -79,3 +79,11 @@
 ### Changed
 
 - **Documentation**: Standardized code comments across `src` and `tests` to comply with `PROMPT_AI.md` (added "Destination" and "Target" annotations).
+
+## 2025-12-09
+
+### Fixed
+
+- **Data Integrity**: Implemented "Cascade Delete".
+  - Deleting a User now automatically removes their Collection (`UserGame`) and Refresh Tokens.
+  - Deleting a Game from the Catalog now automatically removes it from all User Collections to prevent frontend crashes.

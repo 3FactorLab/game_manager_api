@@ -35,9 +35,9 @@ Son los "planos" de nuestra base de datos. Usamos **Mongoose** con **Tipado Estr
 
 - **User**: Define qué es un usuario (`email`, `password`, `role`).
 - **Game**: Define qué es un juego (`title`, `score`, `image`).
-- **UserGame**: Define la relación usuario-juego (colección).
-- **Order**: Define una transacción de compra (`totalAmount`, `status`, `games`).
-- **RefreshToken**: Define el token de seguridad para mantener la sesión.
+- **UserGame**: Define la relación usuario-juego (colección). **Cascade Delete**: Si borras al usuario o al juego, esta relación desaparece.
+- **Order**: Define una transacción de compra (`totalAmount`, `status`, `games`). **Cascade Delete**: Si borras al usuario, se borran sus órdenes.
+- **RefreshToken**: Define el token de seguridad para mantener la sesión. **Cascade Delete**: Si borras al usuario, se revoca el acceso.
 
 ### 3. DTOs (`src/dtos/`)
 
@@ -163,6 +163,10 @@ Veamos qué pasa exactamente cuando un usuario intenta **Crear un Juego**:
    - Envía `201 Created` al Frontend.
 10. **Manejo de Errores (Si algo falla)**:
     - Si la BD explota o hay un bug, el **Error Middleware** captura la excepción y envía un `500 Internal Server Error` controlado.
+11. **Borrado en Cascada (Cascade Delete)**:
+    - Cuando un Admin borra un recurso principal (Usuario o Juego), el backend se encarga de limpiar automáticamente todas las referencias huérfanas:
+      - Borrar Usuario -> Borra RefeshTokens + UserGames + Orders.
+      - Borrar Juego -> Borra UserGames (desaparece de todas las colecciones).
 
 ---
 
@@ -173,10 +177,11 @@ flowchart TD
     %% Nodos Externos
     Client([👤 Cliente / Frontend])
     DB[(🗄️ Base de Datos MongoDB)]
-    ExternalAPIs[☁️ APIs Externas\nRAWG / Steam]
+    ExternalAPIs[☁️ APIs Externas - RAWG / Steam]
 
     %% Capas del Backend
     Routes["📍 Rutas (Routes)"]
+    Docs["📘 Swagger UI (/api-docs)"]
 
     %% Middlewares
     AuthMW["🔑 Auth Middleware"]
@@ -190,14 +195,20 @@ flowchart TD
 
     %% Servicios
     CoreService["🧠 Servicio Core"]
-    IntegrationService["🔌 Servicio Integración\n(RAWG/Steam + Caché)"]
+    IntegrationService["🔌 Servicio Integración (RAWG/Steam + Caché)"]
     CronService["⏱️ Cron Service"]
 
     Model["📄 Modelo Mongoose"]
 
     %% Flujo Principal
     Client -->|1. Request| Routes
-    Routes --> AuthMW
+    Client -.->|Ver Docs| Docs
+
+    %% Bifurcación: Pública vs Privada
+    Routes -->|Ruta Privada| AuthMW
+    Routes -->|Ruta Pública /api/public| Controller
+
+    %% Pipeline Privado
     AuthMW --> RoleMW
     RoleMW --> ValidMW
     ValidMW --> Controller
@@ -241,4 +252,5 @@ flowchart TD
     style IntegrationService fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
     style CronService fill:#FFECB3,stroke:#FFC107,color:#000
     style Model fill:#FFFFFF,stroke:#2E7D32,stroke-width:2px,color:#000
+    style Docs fill:#E3F2FD,stroke:#2196F3,color:#000
 ```

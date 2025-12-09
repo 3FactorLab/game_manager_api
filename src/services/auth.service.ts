@@ -176,10 +176,32 @@ export const updateUserProfile = async (
   return await User.findByIdAndUpdate(userId, updateData, { new: true });
 };
 
+import UserGame from "../models/userGame.model";
+import Order from "../models/order.model";
+
+// ... existing imports
+
 // Delete User
 // Destination: Used by AuthController.deleteUser (src/controllers/auth.controller.ts).
+// Implements Cascade Delete: Removes User, RefreshTokens, UserGames, and Orders.
 export const deleteUserById = async (userId: string) => {
+  // 1. Delete Refresh Tokens
+  await RefreshToken.deleteMany({ user: userId });
+
+  // 2. Delete User Collection (UserGame)
+  await UserGame.deleteMany({ user: userId });
+
+  // 3. Delete User Orders
+  await Order.deleteMany({ user: userId });
+
+  // 4. Delete User
   const deletedUser = await User.findByIdAndDelete(userId);
   if (!deletedUser) throw new AppError("User not found", 404);
   return deletedUser;
+};
+
+// Get All Users (Admin)
+// Destination: Used by AuthController.getUsers (src/controllers/auth.controller.ts).
+export const getAllUsersService = async () => {
+  return await User.find().select("-password");
 };

@@ -17,6 +17,9 @@ describe("Catalog & Collection Integration Tests", () => {
   let gameId: string;
 
   beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI as string);
+    }
     await User.deleteMany({ email: "catalogtest@example.com" });
     await Game.deleteMany({ title: "Elden Ring" });
 

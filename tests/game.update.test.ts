@@ -17,6 +17,9 @@ describe("PUT /api/games/:id", () => {
   let gameId: string;
 
   beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI as string);
+    }
     // Create Admin
     const admin = await User.create({
       username: "admin_update_test",

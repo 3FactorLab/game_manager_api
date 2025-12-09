@@ -10,6 +10,7 @@ import User from "../src/models/user.model";
 import { UserRole } from "../src/types/enums";
 import Game from "../src/models/game.model";
 import jwt from "jsonwebtoken";
+import UserGame from "../src/models/userGame.model";
 
 describe("DELETE /api/games/:id", () => {
   let adminToken: string;
@@ -17,6 +18,11 @@ describe("DELETE /api/games/:id", () => {
   let gameId: string;
 
   beforeAll(async () => {
+    // Ensure DB is connected
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI as string);
+    }
+
     // Create Admin
     const admin = await User.create({
       username: "admin_delete_test",
@@ -61,6 +67,7 @@ describe("DELETE /api/games/:id", () => {
 
   afterEach(async () => {
     await Game.deleteMany({ title: "Game to Delete" });
+    await UserGame.deleteMany({ game: gameId }); // Clean up UserGame entries associated with the deleted game
   });
 
   it("should allow admin to delete a game", async () => {
@@ -73,6 +80,33 @@ describe("DELETE /api/games/:id", () => {
 
     const game = await Game.findById(gameId);
     expect(game).toBeNull();
+  });
+
+  it("should allow admin to delete a game and cascade delete related user games", async () => {
+    // 1. Assign game to a user
+    const user = await User.findOne({ email: "user_delete@test.com" });
+    await UserGame.create({
+      user: user!._id,
+      game: gameId,
+      status: "playing",
+      isOwned: true,
+    });
+
+    // 2. Perform Delete
+    const res = await request(app)
+      .delete(`/api/games/${gameId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe("Game deleted from catalog");
+
+    // 3. Verify Game is gone
+    const game = await Game.findById(gameId);
+    expect(game).toBeNull();
+
+    // 4. Verify Cascade: UserGame is gone
+    const userGame = await UserGame.findOne({ game: gameId });
+    expect(userGame).toBeNull();
   });
 
   it("should deny non-admin user to delete a game", async () => {

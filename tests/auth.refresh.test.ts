@@ -17,7 +17,7 @@ describe("Refresh Token Flow", () => {
 
   beforeAll(async () => {
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGO_URI as string);
+      await mongoose.connect(process.env.MONGODB_URI as string);
     }
   });
 

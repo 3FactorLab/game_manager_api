@@ -18,6 +18,7 @@ npm test
 
 > **Nota sobre Logs**: Verás logs detallados con colores y fechas (gracias a Winston). Esto es normal y te ayuda a depurar.
 > **Importante**: Los tests también validan las variables de entorno. Si tu `.env` está mal configurado, los tests fallarán inmediatamente ("Fail-Fast").
+> **Aislamiento**: Cada test de integración gestiona su propia conexión a la base de datos explícitamente (`beforeAll` connect, `afterAll` close) para asegurar limpieza y evitar fallos por conexiones abiertas (Open Handles).
 
 ### 🔍 Ejecutar un test específico
 
@@ -53,13 +54,17 @@ Simulan un flujo real de usuario de principio a fin.
 
 ### 🛡️ Tests de Autenticación
 
+### 🛡️ Tests de Autenticación y Usuarios
+
 - **`auth.routes.test.ts`**: Prueba los endpoints `/register` y `/login`
 - **`auth.service.test.ts`**: Prueba la lógica interna (hashing de contraseñas) sin llamar a la API
+- **`user.delete.test.ts`**: **Crítico**. Verifica que al borrar un usuario, se borran sus RefreshTokens, UserGames y Órdenes.
+- **`user.management.test.ts`**: Verifica el endpoint de administración `GET /api/users`.
 
 ### 🎮 Tests de Juegos (Catálogo)
 
 - **`catalog.test.ts`**: Verifica que se pueden listar y filtrar juegos
-- **`game.delete.test.ts`**: Verifica que solo los Admins pueden borrar
+- **`game.delete.test.ts`**: Verifica que solo los Admins pueden borrar y que se aplica **Cascade Delete** (limpiando UserGames).
 - **`game.update.test.ts`**: Verifica la edición de juegos
 
 ### 💳 Tests de Pagos

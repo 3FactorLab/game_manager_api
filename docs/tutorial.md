@@ -134,7 +134,8 @@ La lógica de negocio pura. El cerebro.
 ### `src/services/auth.service.ts`
 
 - **Funciones**: `register`, `login`, `refreshToken`.
-- **Lógica**: Hashea contraseñas, genera tokens JWT, gestiona la rotación de Refresh Tokens. Delega el borrado de imágenes antiguas a `FileService`.
+- **Lógica**: Hashea contraseñas, genera tokens JWT, gestiona la rotación de Refresh Tokens.
+- **Cascade Delete**: Al llamar a `deleteUser`, se encarga de orquestar el borrado de imágenes (`FileService`) y la limpieza de datos asociados (UserGames, Orders, Tokens).
 
 ### `src/services/file.service.ts`
 
@@ -208,6 +209,7 @@ El mapa de URLs.
 ### `src/routes/user.routes.ts`
 
 - Define `/register`, `/login`, `/profile`.
+- **Nuevo**: Define `GET /api/users` (Admin) para listar todos los usuarios.
 - Conecta: Ruta -> Validador -> Middleware Auth -> Controlador.
 
 ### `src/routes/game.routes.ts`

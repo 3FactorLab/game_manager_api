@@ -11,6 +11,9 @@ import User from "../src/models/user.model";
 
 describe("Auth Routes Integration Tests", () => {
   beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI as string);
+    }
     // Connect to a test database or ensure the main one is clean
     // For simplicity in this existing setup, we'll just clean the specific user
     await User.deleteMany({ email: "integration_test@example.com" });

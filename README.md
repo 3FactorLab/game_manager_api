@@ -31,6 +31,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 - **JWT Access Tokens**: Corta duración (15 min) para minimizar riesgos.
 - **Refresh Tokens con Rotación**: Detección automática de robo de tokens y revocación en cascada.
 - **RBAC (Role-Based Access Control)**: Middleware estricto para diferenciar entre `Admin` y `User`.
+- **Cascade Delete**: Eliminación inteligente de datos. Si se borra un usuario, se eliminan sus sesiones, órdenes y biblioteca. Si se borra un juego, desaparece de todas las colecciones.
 
 ### 🛠️ Ingeniería de Software
 
@@ -51,6 +52,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 - **Pagos Simulados**: Sistema de checkout completo con historial de órdenes.
 - **Integraciones Externas**: Sincronización automática con **RAWG** (Metadata) y **Steam** (Precios).
 - **Cron Jobs**: Actualización automática de precios de Steam cada madrugada.
+- **Gestión Masiva**: Endpoint de administración para listar y gestionar todos los usuarios del sistema.
 
 ---
 
@@ -160,6 +162,8 @@ El proyecto cuenta con una cobertura de tests de integración crítica.
 ```bash
 npm test
 ```
+
+> La suite incluye **16 suites de tests de integración** con **aislamiento total de base de datos** y gestión explícita de conexiones para evitar fugas ("Open Handles").
 
 ---
 

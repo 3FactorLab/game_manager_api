@@ -10,6 +10,7 @@ import {
   updateUser,
   deleteUser,
   refreshToken,
+  getUsers,
 } from "../controllers/auth.controller";
 import checkAuth from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/role.middleware";
@@ -179,9 +180,40 @@ router.get("/profile", checkAuth, (req: express.Request, res) => {
 
 /**
  * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users (Admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   username:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   role:
+ *                     type: string
+ *       403:
+ *         description: Access denied
+ */
+router.get("/", checkAuth, isAdmin, getUsers);
+
+/**
+ * @swagger
  * /api/users/{id}:
  *   delete:
- *     summary: Delete a user (Admin only)
+ *     summary: Delete a user (Admin only) - Cascade deletes UserGames, RefreshTokens, and Orders
  *     tags: [Users]
  *     parameters:
  *       - in: path

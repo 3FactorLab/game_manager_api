@@ -10,6 +10,7 @@ import {
   updateUserProfile,
   deleteUserById,
   refreshTokenService,
+  getAllUsersService,
 } from "../services/auth.service";
 import { RegisterUserDto, LoginUserDto, UpdateUserDto } from "../dtos";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -91,5 +92,14 @@ export const deleteUser = asyncHandler(
     const { id } = req.params;
     await deleteUserById(id);
     res.json({ message: "User deleted successfully" });
+  }
+);
+
+// Get All Users (Admin)
+// Destination: Used in src/routes/user.routes.ts (GET /).
+export const getUsers = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const users = await getAllUsersService();
+    res.status(200).json(users);
   }
 );

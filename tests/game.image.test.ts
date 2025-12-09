@@ -21,6 +21,9 @@ describe("Game Image Logic Verification", () => {
   let gameId: string;
 
   beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI as string);
+    }
     // DO NOT delete entire DB. Only create test data.
 
     // Create test admin

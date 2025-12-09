@@ -14,6 +14,9 @@ import { JwtPayload } from "../middleware/auth.middleware";
 
 describe("Role Integration Tests", () => {
   beforeAll(async () => {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI as string);
+    }
     await User.deleteMany({ email: /@role-test.com/ });
   });
 

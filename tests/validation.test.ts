@@ -14,7 +14,7 @@ describe("Request Validation (Non-Destructive)", () => {
   beforeAll(async () => {
     // Wait for connection if not already connected
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGO_URI as string);
+      await mongoose.connect(process.env.MONGODB_URI as string);
     }
   });
 

@@ -177,7 +177,7 @@ router.get("/:id", getOne);
  * @swagger
  * /api/games/{id}:
  *   delete:
- *     summary: Delete a game from the catalog (Admin only)
+ *     summary: Delete a game from the catalog (Admin only) - Cascade deletes from all User collections
  *     tags: [Games]
  *     parameters:
  *       - in: path

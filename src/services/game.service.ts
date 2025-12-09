@@ -5,6 +5,7 @@
 import Game, { IGame } from "../models/game.model";
 import { AppError } from "../utils/AppError";
 import mongoose from "mongoose";
+import UserGame from "../models/userGame.model";
 
 // Search games with filters and pagination
 // Destination: Used by GameController.search (src/controllers/game.controller.ts).
@@ -64,9 +65,14 @@ export const getCatalogGameById = async (gameId: string): Promise<IGame> => {
 
 // Delete game from catalog
 // Destination: Used by GameController.deleteGame (src/controllers/game.controller.ts).
+// Implements Cascade Delete: Removes Game and related UserGame entries.
 export const deleteCatalogGame = async (
   gameId: string
 ): Promise<IGame | null> => {
+  // 1. Delete associated UserGames (Collection items)
+  await UserGame.deleteMany({ game: gameId });
+
+  // 2. Delete Game from Catalog
   const deletedGame = await Game.findByIdAndDelete(gameId);
   if (!deletedGame)
     throw new AppError("Juego no encontrado en el catálogo", 404);

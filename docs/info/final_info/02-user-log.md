@@ -37,6 +37,8 @@ Este módulo gestiona la identidad del usuario más allá de la autenticación, 
 
 ## 3. Características Clave
 
+> [!WARNING] > **Cascade Delete**: Si se borra un usuario, se eliminan **permanentemente** todas sus entradas en `UserGame`, así como sus `Orders` y `RefreshTokens`. No hay papelera de reciclaje.
+
 - **Relación Muchos a Muchos**: Un usuario tiene muchos juegos, un juego lo tienen muchos usuarios. Usamos un modelo intermedio (`UserGame`) para guardar datos extra de esa relación.
 - **Seguridad de Datos**: Un usuario solo puede ver y editar **su propia** biblioteca. El middleware `auth` garantiza que `req.userData.id` sea la única referencia usada para consultas.
 - **Validación de Existencia**: Antes de añadir un juego, verificamos que exista en el Catálogo Global.

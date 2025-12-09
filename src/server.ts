@@ -23,7 +23,10 @@ import publicGameRoutes from "./routes/publicGame.routes";
 dotenv.config(); // Load environment variables
 
 // Connect to Database
-connectDB();
+// Connect to Database
+if (process.env.NODE_ENV !== "test") {
+  connectDB();
+}
 
 // Initialize Cron Jobs
 // Initialize Cron Jobs (only if not testing)
