@@ -19,12 +19,14 @@ La mayoría de los endpoints están protegidos por **JWT (JSON Web Token)**. Deb
 1.  Ve a la sección **Users** > `POST /api/users/login`.
 2.  Haz clic en **Try it out**.
 3.  Ingresa el JSON con credenciales válidas:
+
     ```json
     {
       "email": "admin@test.com",
       "password": "password123"
     }
     ```
+
 4.  Haz clic en **Execute**.
 5.  Copia el valor del campo `token` de la respuesta (sin las comillas).
 

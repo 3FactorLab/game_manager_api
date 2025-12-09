@@ -18,6 +18,7 @@ import morgan from "morgan";
 import { errorHandler } from "./middleware/error.middleware";
 import logger from "./utils/logger";
 import { initCronJobs } from "./services/cron.service";
+import publicGameRoutes from "./routes/publicGame.routes";
 
 dotenv.config(); // Load environment variables
 
@@ -43,7 +44,7 @@ app.use(cors());
 app.use(morgan("dev")); // Logger
 
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX_REQUESTS = 100; // Limit each IP to 100 requests per windowMs
+const RATE_LIMIT_MAX_REQUESTS = 1000; // Raised 10x to allow higher request volume per IP
 
 const limiter = rateLimit({
   windowMs: RATE_LIMIT_WINDOW_MS,
@@ -59,6 +60,7 @@ app.use(express.json());
 // Mounts all API routes under /api prefix
 // Static files served from /uploads
 // Swagger documentation served at /api-docs
+app.use("/api/public/games", publicGameRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/collection", collectionRoutes);
