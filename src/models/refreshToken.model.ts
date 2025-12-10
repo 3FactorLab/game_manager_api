@@ -1,5 +1,14 @@
+/**
+ * @file refreshToken.model.ts
+ * @description Mongoose model for refresh tokens used in JWT authentication.
+ * Implements token rotation strategy for enhanced security.
+ */
 import mongoose, { Schema, Document } from "mongoose";
 
+/**
+ * Interface for Refresh Token documents
+ * Includes virtual properties for token validation (isExpired, isActive)
+ */
 export interface IRefreshToken extends Document {
   user: mongoose.Types.ObjectId;
   token: string;

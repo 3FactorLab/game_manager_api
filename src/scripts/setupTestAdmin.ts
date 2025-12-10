@@ -1,8 +1,16 @@
+/**
+ * @file setupTestAdmin.ts
+ * @description Utility script to create or promote a test admin user.
+ * Usage: ts-node src/scripts/setupTestAdmin.ts
+ */
 import mongoose from "mongoose";
 import { User, UserRole } from "../models";
 import { hashPassword } from "../utils/password.util";
 import { MONGO_URI } from "../config/env";
 
+/**
+ * Creates or promotes a test admin user for development/testing purposes
+ */
 const setupAdmin = async () => {
   try {
     await mongoose.connect(MONGO_URI);
