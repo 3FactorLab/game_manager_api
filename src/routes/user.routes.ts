@@ -4,24 +4,74 @@
  * Includes Swagger documentation for each endpoint.
  */
 import express from "express";
-import {
-  register,
-  login,
-  updateUser,
-  deleteUser,
-  refreshToken,
-  getUsers,
-} from "../controllers/auth.controller";
+import { register, login, updateUser, deleteUser, refreshToken, getUsers } from "../controllers/auth.controller";
+import { addToWishlist, removeFromWishlist, getWishlist } from "../controllers/user.controller";
 import checkAuth from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/role.middleware";
-import {
-  registerValidator,
-  loginValidator,
-  updateValidator,
-} from "../validators/auth.validator";
+import { registerValidator, loginValidator, updateValidator } from "../validators/auth.validator";
 import upload from "../middleware/upload.middleware";
 
 const router = express.Router();
+
+// ... existing auth routes ...
+
+// Wishlist Routes
+/**
+ * @swagger
+ * /api/users/wishlist:
+ *   get:
+ *     summary: Get user wishlist
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User wishlist
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/wishlist", checkAuth, getWishlist);
+
+/**
+ * @swagger
+ * /api/users/wishlist/{gameId}:
+ *   post:
+ *     summary: Add game to wishlist
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Game added to wishlist
+ *       400:
+ *         description: Game already in wishlist
+ *       404:
+ *         description: Game or User not found
+ *   delete:
+ *     summary: Remove game from wishlist
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Game removed from wishlist
+ *       404:
+ *         description: User not found
+ */
+router.post("/wishlist/:gameId", checkAuth, addToWishlist);
+router.delete("/wishlist/:gameId", checkAuth, removeFromWishlist);
 
 // Authentication Routes
 /**
@@ -149,13 +199,7 @@ router.post("/login", loginValidator, login);
  *       500:
  *         description: Server error
  */
-router.put(
-  "/update",
-  checkAuth,
-  updateValidator,
-  upload.single("image"),
-  updateUser
-);
+router.put("/update", checkAuth, updateValidator, upload.single("image"), updateUser);
 // Protected Route
 /**
  * @swagger
@@ -172,10 +216,10 @@ router.put(
  *         description: Unauthorized
  */
 router.get("/profile", checkAuth, (req: express.Request, res) => {
-  res.json({
-    message: "Profile",
-    user: req.userData,
-  });
+    res.json({
+        message: "Profile",
+        user: req.userData,
+    });
 });
 
 /**
