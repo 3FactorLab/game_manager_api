@@ -180,7 +180,9 @@ export const getScreenshots = async (rawgId: number) => {
   }
 
   try {
-    const response = await rawgClient.get(`/games/${rawgId}/screenshots`);
+    const response = await rawgClient.get(`/games/${rawgId}/screenshots`, {
+      params: { page_size: 6 },
+    });
     const screenshots = response.data.results.map(
       (s: RAWGScreenshot) => s.image
     );

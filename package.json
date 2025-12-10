@@ -4,11 +4,11 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "test": "jest",
-    "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
+    "start": "node dist/server.js",
     "build": "tsc",
-    "seed": "ts-node src/seeds/seed.ts"
+    "test": "jest --detectOpenHandles --forceExit",
+    "update-screenshots": "ts-node src/scripts/update-screenshots.ts"
   },
   "keywords": [],
   "author": "",
