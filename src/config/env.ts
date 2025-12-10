@@ -31,4 +31,4 @@ export const RAWG_API_KEY: string = getEnv(
 
 // Constants
 export const SALT_ROUNDS: number = 10;
-export const JWT_EXPIRES_IN: string = "1h";
+export const JWT_EXPIRES_IN: string = "4h";

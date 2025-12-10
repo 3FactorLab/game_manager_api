@@ -7,6 +7,7 @@ export interface IRefreshToken extends Document {
   created: Date;
   revoked?: Date;
   replacedByToken?: string;
+  createdByIp?: string;
   isExpired: boolean;
   isActive: boolean;
 }
@@ -18,6 +19,7 @@ const refreshTokenSchema = new Schema<IRefreshToken>({
   created: { type: Date, default: Date.now },
   revoked: { type: Date },
   replacedByToken: { type: String },
+  createdByIp: { type: String },
 });
 
 // Virtual properties for convenience

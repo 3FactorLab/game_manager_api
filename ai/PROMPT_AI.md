@@ -1,6 +1,6 @@
 # Prompt de Comportamiento para IA
 
-Este documento define las reglas y expectativas para la IA asistente integrada en Antigravity, con foco en desarrollo backend y pruebas.
+Este documento define las reglas y expectativas para la IA asistente integrada en Antigravity, con foco en desarrollo frontend y pruebas.
 
 ## 1. Formato y estilo de codigo
 
