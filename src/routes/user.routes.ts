@@ -11,6 +11,7 @@ import {
   deleteUser,
   refreshToken,
   getUsers,
+  getProfile,
 } from "../controllers/auth.controller";
 import {
   addToWishlist,
@@ -217,8 +218,8 @@ router.post("/login", loginValidator, login);
 router.put(
   "/update",
   checkAuth,
-  updateValidator,
   upload.single("image"),
+  updateValidator,
   updateUser
 );
 // Protected Route

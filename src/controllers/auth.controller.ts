@@ -15,6 +15,7 @@ import {
 } from "../services/auth.service";
 import { RegisterUserDto, LoginUserDto, UpdateUserDto } from "../dtos";
 import { asyncHandler } from "../utils/asyncHandler";
+import { AppError } from "../utils/AppError";
 
 // Registration
 // Destination: Used in src/routes/user.routes.ts (POST /register).

@@ -4,6 +4,14 @@
 
 ### Added
 
+- **[Backend] [Bugfix]**: Fixed `ReferenceError: getProfile is not defined` by adding missing import in `user.routes.ts`.
+- **[Backend] [Bugfix]**: Fixed `ReferenceError: AppError is not defined` by adding missing import in `auth.controller.ts`.
+- **[Backend] [Test]**: Updated `rawg.service.test.ts` to expect `page_size` parameter in screenshot requests.
+- **[Backend] [Test]**: Created `wishlist.test.ts` ensuring CRUD coverage for user wishlists.
+- **[Backend] [Test]**: Created `user.avatar.test.ts` verifying profile updates and image uploads.
+- **[Backend] [Bugfix]**: Fixed 500 Error in file uploads by ensuring `uploads/` directory exists on startup (`server.ts`).
+- **[Backend] [Bugfix]**: Fixed `req.file` parsing issue by reordering `multer` middleware before `express-validator` in `user.routes.ts`.
+- **[Backend] [Bugfix]**: Fixed `auth.service.ts` to correctly apply profile picture updates to the database.
 - **Documentation**: `docs/tutorial.md` - Comprehensive backend tutorial.
 - **Game Model**:
   - Campos `developer` y `publisher` añadidos al catálogo global.

@@ -116,7 +116,9 @@ describe("RAWG Service", () => {
 
       const result = await getScreenshots(1);
 
-      expect(mockClient.get).toHaveBeenCalledWith("/games/1/screenshots");
+      expect(mockClient.get).toHaveBeenCalledWith("/games/1/screenshots", {
+        params: { page_size: 6 },
+      });
       expect(result).toEqual(["img1", "img2"]);
     });
 

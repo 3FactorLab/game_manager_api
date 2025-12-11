@@ -572,3 +572,26 @@
   - Golden rules for maintaining documentation standards
 - **Status**: Documentation files updated and aligned with current codebase standards.
 - **Files Modified**: `docs/architecture.md`, `docs/tutorial.md`
+
+## 2025-12-11 13:16:00+01:00
+
+- **Actions**: Backend Repair Session.
+- **Diagnosis**: Identified `ReferenceError` in `user.routes.ts` (missing `getProfile`) and `auth.controller.ts` (missing `AppError`).
+- **Fixes**: Added missing imports.
+- **Test Fix**: Updated `rawg.service.test.ts` to include `page_size` parameter in expectations.
+- **Verification**: `npm test` verified 100% success (All Green).
+- **Status**: Backend fully restored and stable.
+- **Files**: `src/routes/user.routes.ts`, `src/controllers/auth.controller.ts`, `tests/rawg.service.test.ts`
+
+## 2025-12-11 13:25:00+01:00
+
+- **Actions**: Backend Test Coverage Enhancement & Robustness Fixes.
+- **Goal**: Verify untested logic (Wishlist, Avatar Upload) and stabilize file handling.
+- **Implementation**:
+  - Created `tests/wishlist.test.ts` and `tests/user.avatar.test.ts`.
+  - Added `fs.ensureDirSync("uploads")` to `server.ts` to prevent startup 500 errors.
+  - Reordered middleware in `user.routes.ts` (`multer` before `validator`) to fix multipart parsing.
+  - Fixed logic bug in `auth.service.ts` where `updateProfile` ignored image updates.
+- **Verification**: `npm test` passed 18/18 Suites (75 tests).
+- **Status**: Backend hardened. All critical flows covered.
+- **Files**: `tests/wishlist.test.ts`, `tests/user.avatar.test.ts`, `src/server.ts`, `src/routes/user.routes.ts`, `src/services/auth.service.ts`

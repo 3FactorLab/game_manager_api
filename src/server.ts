@@ -19,8 +19,14 @@ import { errorHandler } from "./middleware/error.middleware";
 import logger from "./utils/logger";
 import { initCronJobs } from "./services/cron.service";
 import publicGameRoutes from "./routes/publicGame.routes";
+import fs from "fs-extra";
 
 dotenv.config(); // Load environment variables
+
+// Ensure uploads directory exists
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
 
 // Connect to Database
 // Connect to Database

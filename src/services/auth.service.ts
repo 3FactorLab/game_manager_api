@@ -185,11 +185,11 @@ export const updateUserProfile = async (
   }
 
   // Encriptar contraseña si viene en el update
-  if (updateData.password) {
-    updateData.password = await hashPassword(updateData.password);
+  if (updates.password) {
+    updates.password = await hashPassword(updates.password);
   }
   // { new: true } devuelve el usuario actualizado
-  return await User.findByIdAndUpdate(userId, updateData, { new: true });
+  return await User.findByIdAndUpdate(userId, updates, { new: true });
 };
 
 import UserGame from "../models/userGame.model";
