@@ -48,4 +48,32 @@ router.post(
   paymentController.createCheckoutSession
 );
 
+/**
+ * @swagger
+ * /api/payments/checkout/simulate:
+ *   post:
+ *     summary: Simulate a purchase
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [gameIds]
+ *             properties:
+ *               gameIds:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: Purchase simulated
+ */
+router.post(
+  "/checkout/simulate",
+  checkAuth,
+  createCheckoutSessionValidator, // Same validation (gameIds required)
+  paymentController.simulatePurchase
+);
+
 export default router;

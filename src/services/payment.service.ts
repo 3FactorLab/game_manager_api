@@ -9,6 +9,8 @@ import { IUser } from "../models/user.model";
 import logger from "../utils/logger";
 import { OrderStatus } from "../types/enums";
 
+import crypto from "crypto";
+
 /**
  * Simulates a payment process internally.
  * Creates an order and adds games to user's library immediately.
@@ -21,15 +23,30 @@ export const processPayment = async (
     throw new Error("No games provided for payment");
   }
 
-  // 1. Calculate Total (Simulation)
-  const totalAmount = games.reduce((sum, game) => {
-    return sum + (game.price || 1999); // Default 19.99 if no price
-  }, 0);
+  // 1. Calculate Total and Prepare Items
+  let totalAmount = 0;
+  const items = games.map((game) => {
+    const price = game.price || 19.99; // Default 19.99 if no price
+    totalAmount += price;
+
+    // Generate simple key for mock
+    const licenseKey = `GAME-${crypto
+      .randomBytes(4)
+      .toString("hex")
+      .toUpperCase()}-${new Date().getFullYear()}`;
+
+    return {
+      game: game._id,
+      title: game.title,
+      price: price,
+      licenseKey: licenseKey,
+    };
+  });
 
   // 2. Create Order (Completed immediately)
   const order = await Order.create({
     user: user._id,
-    games: games.map((g) => g._id),
+    items: items,
     totalAmount,
     currency: "eur",
     status: OrderStatus.COMPLETED,

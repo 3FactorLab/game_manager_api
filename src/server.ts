@@ -9,6 +9,7 @@ import userRoutes from "./routes/user.routes";
 import gameRoutes from "./routes/game.routes";
 import collectionRoutes from "./routes/collection.routes";
 import paymentRoutes from "./routes/payment.routes";
+import orderRoutes from "./routes/order.routes";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
 import helmet from "helmet";
@@ -74,6 +75,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/collection", collectionRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

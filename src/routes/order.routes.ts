@@ -1,0 +1,25 @@
+/**
+ * @file order.routes.ts
+ * @description Routes for order management.
+ */
+import { Router } from "express";
+import * as orderController from "../controllers/order.controller";
+import checkAuth from "../middleware/auth.middleware";
+
+const router = Router();
+
+/**
+ * @swagger
+ * /api/orders/my-orders:
+ *   get:
+ *     summary: Get logged-in user's order history
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of orders
+ */
+router.get("/my-orders", checkAuth, orderController.getMyOrders);
+
+export default router;

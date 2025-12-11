@@ -9,7 +9,12 @@ import { IGame } from "./game.model"; // Assuming IGame is defined in game.model
 
 export interface IOrder extends Document {
   user: IUser["_id"];
-  games: IGame["_id"][];
+  items: {
+    game: IGame["_id"];
+    title: string;
+    price: number;
+    licenseKey: string;
+  }[];
   totalAmount: number;
   currency: string;
   status: OrderStatus;
@@ -21,7 +26,14 @@ export interface IOrder extends Document {
 const orderSchema: Schema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    games: [{ type: Schema.Types.ObjectId, ref: "Game", required: true }],
+    items: [
+      {
+        game: { type: Schema.Types.ObjectId, ref: "Game", required: true },
+        title: { type: String, required: true },
+        price: { type: Number, required: true },
+        licenseKey: { type: String, required: true },
+      },
+    ],
     totalAmount: { type: Number, required: true },
     currency: { type: String, default: "eur" },
     status: {
