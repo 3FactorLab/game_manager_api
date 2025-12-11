@@ -152,9 +152,25 @@ export const updateUserProfile = async (
   updateData: UpdateUserDto,
   imagePath?: string
 ) => {
-  // 1. Buscar el usuario actual para ver si tiene foto vieja
+  // 1. Buscar el usuario actual
   const user = await User.findById(userId);
   if (!user) throw new AppError("User not found", 404);
+
+  // 2. Check for uniqueness conflicts (Username)
+  if (updateData.username && updateData.username !== user.username) {
+    const existingUser = await User.findOne({ username: updateData.username });
+    if (existingUser) {
+      throw new AppError("Username already taken", 400);
+    }
+  }
+
+  // 3. Check for uniqueness conflicts (Email)
+  if (updateData.email && updateData.email !== user.email) {
+    const existingEmail = await User.findOne({ email: updateData.email });
+    if (existingEmail) {
+      throw new AppError("Email already registered", 400);
+    }
+  }
 
   const updates: UpdateUserDto & { profilePicture?: string } = {
     ...updateData,
@@ -198,6 +214,14 @@ export const deleteUserById = async (userId: string) => {
   const deletedUser = await User.findByIdAndDelete(userId);
   if (!deletedUser) throw new AppError("User not found", 404);
   return deletedUser;
+};
+
+// Get User By ID (Profile)
+// Destination: Used by AuthController.getProfile.
+export const getUserById = async (userId: string) => {
+  const user = await User.findById(userId).select("-password");
+  if (!user) throw new AppError("User not found", 404);
+  return user;
 };
 
 // Get All Users (Admin)

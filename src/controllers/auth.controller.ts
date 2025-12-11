@@ -11,6 +11,7 @@ import {
   deleteUserById,
   refreshTokenService,
   getAllUsersService,
+  getUserById,
 } from "../services/auth.service";
 import { RegisterUserDto, LoginUserDto, UpdateUserDto } from "../dtos";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -92,6 +93,18 @@ export const deleteUser = asyncHandler(
     const { id } = req.params;
     await deleteUserById(id);
     res.json({ message: "User deleted successfully" });
+  }
+);
+
+// Get Profile
+// Destination: Used in src/routes/user.routes.ts (GET /profile).
+export const getProfile = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.userData?.id;
+    if (!userId) throw new AppError("User ID not found in token", 401);
+
+    const user = await getUserById(userId);
+    res.status(200).json({ message: "Profile data", user });
   }
 );
 

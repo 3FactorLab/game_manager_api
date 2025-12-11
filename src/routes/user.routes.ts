@@ -4,11 +4,26 @@
  * Includes Swagger documentation for each endpoint.
  */
 import express from "express";
-import { register, login, updateUser, deleteUser, refreshToken, getUsers } from "../controllers/auth.controller";
-import { addToWishlist, removeFromWishlist, getWishlist } from "../controllers/user.controller";
+import {
+  register,
+  login,
+  updateUser,
+  deleteUser,
+  refreshToken,
+  getUsers,
+} from "../controllers/auth.controller";
+import {
+  addToWishlist,
+  removeFromWishlist,
+  getWishlist,
+} from "../controllers/user.controller";
 import checkAuth from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/role.middleware";
-import { registerValidator, loginValidator, updateValidator } from "../validators/auth.validator";
+import {
+  registerValidator,
+  loginValidator,
+  updateValidator,
+} from "../validators/auth.validator";
 import upload from "../middleware/upload.middleware";
 
 const router = express.Router();
@@ -199,7 +214,13 @@ router.post("/login", loginValidator, login);
  *       500:
  *         description: Server error
  */
-router.put("/update", checkAuth, updateValidator, upload.single("image"), updateUser);
+router.put(
+  "/update",
+  checkAuth,
+  updateValidator,
+  upload.single("image"),
+  updateUser
+);
 // Protected Route
 /**
  * @swagger
@@ -215,12 +236,7 @@ router.put("/update", checkAuth, updateValidator, upload.single("image"), update
  *       401:
  *         description: Unauthorized
  */
-router.get("/profile", checkAuth, (req: express.Request, res) => {
-    res.json({
-        message: "Profile",
-        user: req.userData,
-    });
-});
+router.get("/profile", checkAuth, getProfile);
 
 /**
  * @swagger
