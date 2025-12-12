@@ -18,7 +18,7 @@ npm test
 
 > **Nota sobre Logs**: Verás logs detallados con colores y fechas (gracias a Winston). Esto es normal y te ayuda a depurar.
 > **Importante**: Los tests también validan las variables de entorno. Si tu `.env` está mal configurado, los tests fallarán inmediatamente ("Fail-Fast").
-> **Aislamiento**: Cada test de integración gestiona su propia conexión a la base de datos explícitamente (`beforeAll` connect, `afterAll` close) para asegurar limpieza y evitar fallos por conexiones abiertas (Open Handles).
+> **Aislamiento**: Utilizamos `tests/setup.ts` para gestionar la conexión global a la base de datos de forma automática. Ya no es necesario conectar/desconectar Mongoose en cada archivo, aunque cada test sigue siendo responsable de limpiar sus propios datos de prueba.
 
 ### 🔍 Ejecutar un test específico
 
@@ -52,6 +52,10 @@ Simulan un flujo real de usuario de principio a fin.
   - Lo busca, lo edita y lo borra
   - **Si este test pasa, tu backend funciona**
 
+### 🌐 Tests Públicos
+
+- **`public.games.test.ts`**: Verifica que cualquier usuario (sin login) puede ver el catálogo y el detalle de los juegos.
+
 ### 🛡️ Tests de Autenticación
 
 ### 🛡️ Tests de Autenticación y Usuarios
@@ -70,6 +74,7 @@ Simulan un flujo real de usuario de principio a fin.
 ### 💳 Tests de Pagos
 
 - **`payment.service.test.ts`**: Verifica la creación de órdenes y el acceso a la librería.
+- **`order.integration.test.ts`**: Verifica el endpoint de Simulación de Compra (`/checkout/simulate`) y el historial de pedidos (`/my-orders`).
 
 ---
 

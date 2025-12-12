@@ -35,13 +35,74 @@ const options: swaggerJsdoc.Options = {
         ErrorResponse: {
           type: "object",
           properties: {
+            status: { type: "string", example: "error" },
+            message: { type: "string", example: "Error description" },
+          },
+        },
+        User: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            username: { type: "string" },
+            email: { type: "string", format: "email" },
+            role: { type: "string", enum: ["user", "admin"] },
+            image: { type: "string" },
+          },
+        },
+        Game: {
+          type: "object",
+          properties: {
+            _id: { type: "string", format: "uuid" },
+            title: { type: "string" },
+            genre: { type: "string" },
+            platform: { type: "string" },
+            developer: { type: "string" },
+            publisher: { type: "string" },
+            image: { type: "string" },
+            score: { type: "number" },
+            price: { type: "number" },
+            currency: { type: "string" },
+          },
+        },
+        UserGame: {
+          type: "object",
+          properties: {
+            game: { $ref: "#/components/schemas/Game" },
             status: {
               type: "string",
-              example: "error",
+              enum: [
+                "playing",
+                "completed",
+                "dropped",
+                "plan_to_play",
+                "pending",
+              ],
             },
-            message: {
-              type: "string",
-              example: "Error description",
+            hoursPlayed: { type: "number" },
+            score: { type: "number" },
+            review: { type: "string" },
+            isFavorite: { type: "boolean" },
+            isOwned: { type: "boolean" },
+          },
+        },
+        Order: {
+          type: "object",
+          properties: {
+            _id: { type: "string", format: "uuid" },
+            totalAmount: { type: "number" },
+            status: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  game: { type: "string" },
+                  title: { type: "string" },
+                  price: { type: "number" },
+                  licenseKey: { type: "string" },
+                },
+              },
             },
           },
         },

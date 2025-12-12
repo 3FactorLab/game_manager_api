@@ -16,9 +16,7 @@ describe("Refresh Token Flow", () => {
   let accessToken: string;
 
   beforeAll(async () => {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI as string);
-    }
+    // Setup logic if needed, but connection is handled globally
   });
 
   afterAll(async () => {
@@ -27,7 +25,7 @@ describe("Refresh Token Flow", () => {
       await User.findByIdAndDelete(userId);
       await RefreshToken.deleteMany({ user: userId });
     }
-    await mongoose.connection.close();
+    // await mongoose.connection.close(); // Handled globally
   });
 
   it("should register and login to get tokens", async () => {

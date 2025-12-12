@@ -28,7 +28,7 @@ flowchart TD
     FileSystem[💾 Sistema de Archivos<br/>uploads/]
 
     %% Capas del Backend
-    Routes["📍 Rutas (Routes)"]
+    Routes["📍 Rutas (Routes)<br/>/api/games, /public, /orders"]
     Docs["📘 Swagger UI<br/>/api-docs"]
 
     %% Middlewares (Pipeline)
@@ -39,7 +39,7 @@ flowchart TD
     ErrorMW["🚨 Error Middleware"]
 
     %% Componentes Principales
-    Controller["🤵 Controlador<br/>(Auth/Game/Collection/Payment/User)"]
+    Controller["🤵 Controlador<br/>(Auth/Game/Collection/Payment/User/Order)"]
     DTO["📦 DTOs<br/>(Validación de Tipos)"]
 
     %% Servicios Core
@@ -55,6 +55,7 @@ flowchart TD
     %% Servicios Auxiliares
     FileService["📁 File Service<br/>(Gestión Archivos)"]
     CronService["⏱️ Cron Service<br/>(Actualización Precios)"]
+    MailService["📧 Mail Service<br/>(Nodemailer)"]
 
     %% Modelos (Base de Datos)
     UserModel["👤 User Model"]
@@ -101,6 +102,7 @@ flowchart TD
 
     PaymentService -->|Crea| OrderModel
     PaymentService -->|Actualiza| UserGameModel
+    PaymentService -->|Notifica| MailService
 
     %% Servicios usan FileService
     AuthService -.->|Borra imágenes| FileService
@@ -169,6 +171,7 @@ flowchart TD
     %% Estilos - Servicios Auxiliares
     style FileService fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#000
     style CronService fill:#FFECB3,stroke:#FFA000,stroke-width:2px,color:#000
+    style MailService fill:#FFECB3,stroke:#FFA000,stroke-width:2px,color:#000
 
     %% Estilos - Modelos
     style UserModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
@@ -216,7 +219,7 @@ El cerebro de la aplicación.
 
 - **Core**: lógicas CRUD y de negocio (`Auth`, `Game`, `Collection`).
 - **Integración**: Wrappers para APIs externas (`RAWG`, `Steam`).
-- **Infraestructura**: Abstacciones técnicas (`File`, `Cron`).
+- **Infraestructura**: Abstacciones técnicas (`File`, `Cron`, `Mail`).
 
 ---
 
@@ -304,13 +307,19 @@ sequenceDiagram
     participant PS as PaymentService
     participant OM as Order Model
     participant UGM as UserGame Model
+    participant MS as MailService
 
     C->>PS: Checkout(gameIds)
     PS->>OM: create({status: COMPLETED})
-    loop Para cada juego
-        PS->>UGM: upsert({isOwned: true})
+
+    par Procesamiento Paralelo
+        loop Activar Juegos
+            PS->>UGM: upsert({isOwned: true})
+        end
+        PS->>MS: sendPurchaseConfirmation()
     end
-    PS-->>C: Success
+
+    PS-->>C: Success JSON
 ```
 
 ### 3. Cascade Delete (Integridad)
@@ -322,6 +331,30 @@ flowchart TD
     User -.->|Borra| Collection[📚 UserCollection]
     User -.->|Borra| Orders[🧾 Orders]
 ```
+
+---
+
+---
+
+## 🧪 Estrategia de Testing (Quality Assurance)
+
+Garantizamos la estabilidad del sistema mediante una suite de tests exhaustiva (>85 tests, Jest + Supertest).
+
+### 1. Global Setup (`tests/setup.ts`)
+
+Gestiona el ciclo de vida de la conexión a MongoDB para todos los tests, evitando fugas de memoria y reduciendo boilerplate.
+
+### 2. Tipos de Tests
+
+- **Integración (Routes)**: Verifican el flujo completo desde el Request hasta la DB.
+  - _Ejemplo_: `order.integration.test.ts` simula un usuario registrándose, logueándose, creando una orden y verificando su historial.
+- **Unitarios (Services)**: Verifican la lógica de negocio aislada.
+  - _Ejemplo_: `payment.service.test.ts` valida el cálculo de totales sin necesitar servidor HTTP.
+- **Seguridad**: Tests específicos para roles, expiración de tokens, manejo de errores y validación de DTOs.
+
+### 3. Coverage
+
+Cubrimos todos los flujos críticos: Auth, Pagos, Catálogo y Colecciones.
 
 ---
 

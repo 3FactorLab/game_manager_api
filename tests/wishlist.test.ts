@@ -22,9 +22,7 @@ describe("Wishlist Integration Tests", () => {
   const uniqueSuffix = Date.now();
 
   beforeAll(async () => {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI as string);
-    }
+    // Connection handled globally
 
     // Create Test User
     const user = await User.create({
@@ -50,7 +48,7 @@ describe("Wishlist Integration Tests", () => {
   afterAll(async () => {
     await User.findByIdAndDelete(userId);
     await Game.findByIdAndDelete(gameId);
-    await mongoose.connection.close();
+    // Connection closed globally
   });
 
   describe("POST /api/users/wishlist/:gameId", () => {

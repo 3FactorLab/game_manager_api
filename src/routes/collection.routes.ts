@@ -57,6 +57,12 @@ router.use(checkAuth);
  *     responses:
  *       200:
  *         description: List of user games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/UserGame'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -94,9 +100,14 @@ router.get("/", getCollection);
  *               hoursPlayed: { type: number }
  *               score: { type: number }
  *               review: { type: string }
+ *               isFavorite: { type: boolean }
  *     responses:
  *       201:
  *         description: Added to collection
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserGame'
  *       400:
  *         description: Bad request
  *         content:
@@ -142,9 +153,14 @@ router.post("/", addToCollectionValidator, addToCollection);
  *               hoursPlayed: { type: number }
  *               score: { type: number }
  *               review: { type: string }
+ *               isFavorite: { type: boolean }
  *     responses:
  *       200:
  *         description: Updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserGame'
  *       400:
  *         description: Bad request
  *         content:

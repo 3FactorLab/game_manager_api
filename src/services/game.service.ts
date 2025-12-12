@@ -6,11 +6,8 @@ import Game, { IGame } from "../models/game.model";
 import { AppError } from "../utils/AppError";
 import mongoose from "mongoose";
 import UserGame from "../models/userGame.model";
+// ...
 
-// Search games with filters and pagination
-// Destination: Used by GameController.search (src/controllers/game.controller.ts).
-// Supports filtering by title (regex), genre, and platform.
-// Implements pagination.
 export const searchGames = async (
   query: string,
   page: number = 1,
@@ -18,7 +15,6 @@ export const searchGames = async (
   genre?: string,
   platform?: string
 ) => {
-  // TODO: Fix Mongoose FilterQuery type import (currently failing with 'no exported member')
   const filter: any = {};
   if (query) filter.title = { $regex: query, $options: "i" };
   if (genre) filter.genre = genre;

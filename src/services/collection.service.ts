@@ -44,7 +44,6 @@ export const getCollection = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  // TODO: Fix Mongoose FilterQuery type import
   const filter: any = {
     user: new mongoose.Types.ObjectId(userId),
   };

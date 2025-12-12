@@ -189,6 +189,29 @@ Simula el proceso de pago para un carrito de compras.
   ```
 - **Respuesta:** Devuelve `success: true` y un `orderId` simulado.
 
+- **Respuesta:** Devuelve `success: true` y un `orderId` simulado.
+
+---
+
+## 🧾 7. Órdenes (Orders)
+
+Gestiona el historial de compras del usuario.
+
+### Historial de Órdenes (`GET /api/orders`)
+
+Obtiene la lista de todas las compras realizadas por el usuario.
+
+- **Auth:** 🔒 Requerida.
+- **Respuesta:** Array de órdenes con detalles de items, total y estado.
+
+### Detalle de Orden (`GET /api/orders/{id}`)
+
+Obtiene información específica de una orden individual.
+
+- **Auth:** 🔒 Requerida.
+- **Param:** `id` (ID de la orden).
+- **Importante:** Solo puedes ver tus propias órdenes.
+
 ---
 
 ## 💡 Tips para Pruebas Exitosas

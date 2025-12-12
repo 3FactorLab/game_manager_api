@@ -11,6 +11,8 @@ export interface CreateGameDto {
   publisher?: string;
   image?: string;
   score?: number;
+  price?: number;
+  currency?: string;
 }
 
 export interface UpdateGameDto {
@@ -21,4 +23,6 @@ export interface UpdateGameDto {
   publisher?: string;
   image?: string;
   score?: number;
+  price?: number;
+  currency?: string;
 }

@@ -41,7 +41,8 @@ El sistema de pagos implementado es una **Simulación (Mock)** diseñada para pe
     - Verifica precios en BD (nunca confía en el cliente).
     - Crea el registro de venta.
     - Actualiza la biblioteca del usuario.
-3.  **Resultado**: El usuario ve inmediatamente los juegos en su perfil.
+    - **Notificación**: Envía un correo con el resumen y las claves de activación.
+3.  **Resultado**: El usuario ve inmediatamente los juegos en su perfil y recibe el ticket por email.
 
 ## 4. Futura Migración a Stripe
 

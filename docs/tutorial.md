@@ -224,8 +224,13 @@ El mapa de URLs.
 
 ### `src/routes/payment.routes.ts`
 
-- Define `/checkout`.
+- Define `/checkout` y `/checkout/simulate` (Simulación de compra).
 - Requiere autenticación.
+
+### `src/routes/order.routes.ts`
+
+- Define `/my-orders`.
+- Permite al usuario ver su historial de compras.
 
 ---
 
@@ -387,7 +392,10 @@ La infraestructura como código.
 
 Nuestra red de seguridad.
 
+- **`setup.ts`**: Configuración global de tests. Conecta y desconecta la BD automáticamente antes/después de todos los tests.
 - **`integration/full-flow.test.ts`**: El test más importante. Simula un usuario real haciendo de todo.
+- **`public.games.test.ts`**: Verifica que el catálogo sea visible sin login.
+- **`order.integration.test.ts`**: Prueba el flujo completo de compra (Mock) y el historial de pedidos.
 - **`auth.service.test.ts`**: Prueba unitaria del registro.
 - **`catalog.test.ts`**: Prueba específica del catálogo.
 - **`payment.service.test.ts`**: Prueba la lógica de pagos y órdenes.

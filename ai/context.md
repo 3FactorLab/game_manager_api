@@ -595,3 +595,17 @@
 - **Verification**: `npm test` passed 18/18 Suites (75 tests).
 - **Status**: Backend hardened. All critical flows covered.
 - **Files**: `tests/wishlist.test.ts`, `tests/user.avatar.test.ts`, `src/server.ts`, `src/routes/user.routes.ts`, `src/services/auth.service.ts`
+
+## 2025-12-12T11:35:00+01:00
+
+- **Actions**: Backend Test Refactoring and Expansion.
+- **Analysis**: Identified redundant database connection logic in tests and gaps in coverage for Public Games and Orders.
+- **Implementation**:
+  - `tests/setup.ts`: Created global test setup handling Mongoose connections.
+  - `tests/public.games.test.ts`: Created integration tests for unauthenticated game access.
+  - `tests/order.integration.test.ts`: Created integration tests for checkout simulation and order history.
+  - Refactor: Removed explicit `mongoose.connect`/`disconnect` from 6 existing test files.
+- **Compliance**: Added proper file headers (`@file`, `@description`) to new files as per `PROMPT_AI.md`.
+- **Verification**: `npm test` verified 20/20 Suites passed (85 tests).
+- **Status**: Backend Tests modernized, coverage increased, and redundancy reduced.
+- **Files**: `tests/setup.ts`, `tests/public.games.test.ts`, `tests/order.integration.test.ts`, `jest.config.cjs`

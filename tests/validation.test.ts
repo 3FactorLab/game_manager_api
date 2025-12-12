@@ -11,15 +11,13 @@ import { UserRole } from "../src/types/enums";
 
 describe("Request Validation (Non-Destructive)", () => {
   // Connect to DB before tests (using existing connection logic in server, but ensuring it's ready)
+  // Connect to DB before tests (using existing connection logic in server, but ensuring it's ready)
   beforeAll(async () => {
-    // Wait for connection if not already connected
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI as string);
-    }
+    // Wait for connection if not already connected - Handled Globally
   });
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    // Connection closed globally
   });
 
   describe("User Validation", () => {

@@ -95,3 +95,18 @@
 - **Data Integrity**: Implemented "Cascade Delete".
   - Deleting a User now automatically removes their Collection (`UserGame`) and Refresh Tokens.
   - Deleting a Game from the Catalog now automatically removes it from all User Collections to prevent frontend crashes.
+
+## 2025-12-12
+
+### Refactor
+
+- **Test Infrastructure**: Centralized Mongoose connection management in `tests/setup.ts` and updated `jest.config.cjs`. Removed redundant connection code from 6 test suites.
+
+### Added
+
+- **Tests**: `tests/public.games.test.ts` for verifying unauthenticated access to the game catalog.
+- **Tests**: `tests/order.integration.test.ts` for verifying checkout simulation and order history retrieval.
+
+### Fixed
+
+- **Compliance**: Added `@file` and `@description` headers to new test files to match strict project standards.

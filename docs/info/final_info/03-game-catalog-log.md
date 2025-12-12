@@ -12,7 +12,8 @@ El corazón de la aplicación es el Catálogo Global de Juegos. Este sistema no 
   - Datos básicos: Título, descripción, fecha lanzamiento.
   - Multimedia: Portada, capturas de pantalla.
   - Metadatos: Género, plataforma, desarrollador.
-  - **Precios**: Precio base, descuento, moneda (obtenidos de Steam).
+  - Metadatos: Género, plataforma, desarrollador.
+  - **Precios**: Soporte Multi-moneda (USD/EUR), descuentos y precio base (Steam).
   - **IDs Externos**: `rawgId` y `steamAppId` para sincronización futura.
 
 ### B. Servicios de Integración (`src/services/`)

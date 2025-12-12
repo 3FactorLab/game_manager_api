@@ -35,9 +35,19 @@ const router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 success: { type: boolean }
- *                 orderId: { type: string }
  *                 message: { type: string }
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 import { createCheckoutSessionValidator } from "../validators/payment.validator";
 
@@ -67,7 +77,39 @@ router.post(
  *                 type: array
  *     responses:
  *       200:
- *         description: Purchase simulated
+ *         description: Purchase simulated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Purchase simulated successfully"
+ *                 orderId:
+ *                   type: string
+ *                   format: uuid
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: User or Games not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
   "/checkout/simulate",

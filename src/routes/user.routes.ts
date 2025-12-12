@@ -43,6 +43,12 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: User wishlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
  *       401:
  *         description: Unauthorized
  */
@@ -124,6 +130,15 @@ router.delete("/wishlist/:gameId", checkAuth, removeFromWishlist);
  *     responses:
  *       201:
  *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Bad request
  *         content:
@@ -171,6 +186,8 @@ router.post("/register", upload.single("image"), registerValidator, register);
  *               properties:
  *                 token:
  *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Invalid credentials
  *         content:
@@ -212,8 +229,16 @@ router.post("/login", loginValidator, login);
  *     responses:
  *       200:
  *         description: User updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put(
   "/update",
@@ -234,6 +259,10 @@ router.put(
  *     responses:
  *       200:
  *         description: User profile data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized
  */
@@ -255,16 +284,7 @@ router.get("/profile", checkAuth, getProfile);
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                   username:
- *                     type: string
- *                   email:
- *                     type: string
- *                   role:
- *                     type: string
+ *                 $ref: '#/components/schemas/User'
  *       403:
  *         description: Access denied
  */
@@ -313,6 +333,17 @@ router.delete("/:id", checkAuth, isAdmin, deleteUser);
  *     responses:
  *       200:
  *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Invalid refresh token
  */

@@ -4,8 +4,8 @@
 
 ![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-v5+-blue.svg?style=flat-square)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=flat-square)
-![Express](https://img.shields.io/badge/Express-v4.18+-lightgrey.svg?style=flat-square)
+
+![Express](https://img.shields.io/badge/Express-v5.0-lightgrey.svg?style=flat-square)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green.svg?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
 
@@ -28,14 +28,14 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 
 ### 🔐 Seguridad de Grado Empresarial
 
+- **Start-of-the-Art Security**: Implementación de **Helmet** (Headers HTTP seguros) y **Rate Limiting** (protección DDOS) global.
 - **JWT Access Tokens**: Corta duración (15 min) para minimizar riesgos.
 - **Refresh Tokens con Rotación**: Detección automática de robo de tokens y revocación en cascada.
 - **RBAC (Role-Based Access Control)**: Middleware estricto para diferenciar entre `Admin` y `User`.
-- **Cascade Delete**: Eliminación inteligente de datos. Si se borra un usuario, se eliminan sus sesiones, órdenes y biblioteca. Si se borra un juego, desaparece de todas las colecciones.
+- **Cascade Delete**: Eliminación inteligente de datos. Si se borra un usuario, se eliminan sus sesiones, órdenes y biblioteca.
 
 ### 🛠️ Ingeniería de Software
 
-- **Dockerizado**: Entorno de desarrollo y producción reproducible con `docker-compose`.
 - **TypeScript**: Código tipado, seguro y mantenible.
 - **Arquitectura por Capas**: Separación clara entre Rutas, Controladores, Servicios y Modelos.
 - **Validación Estricta**: DTOs y `express-validator` aseguran que nunca entren datos corruptos.
@@ -49,7 +49,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 - **Catálogo Híbrido**: Soporta juegos importados de RAWG/Steam y juegos creados manualmente con subida de imágenes.
 - **Colección Personal**: Gestión de estados (Playing, Completed), puntuaciones y reseñas.
 - **Paginación y Filtros**: Búsqueda avanzada por género, plataforma y estado.
-- **Pagos Simulados**: Sistema de checkout completo con historial de órdenes.
+- **Pagos Simulados**: Sistema de checkout completo con historial de órdenes y **Notificaciones por Email**.
 - **Integraciones Externas**: Sincronización automática con **RAWG** (Metadata) y **Steam** (Precios).
 - **Cron Jobs**: Actualización automática de precios de Steam cada madrugada.
 - **Gestión Masiva**: Endpoint de administración para listar y gestionar todos los usuarios del sistema.
@@ -58,40 +58,19 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 
 ## 🚀 Stack Tecnológico
 
-- **Infraestructura**: Docker, Docker Compose
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Lenguaje**: TypeScript
 - **Base de Datos**: MongoDB (Atlas o Local) + Mongoose ODM
 - **Testing**: Jest + Supertest
 - **Documentación**: Swagger (OpenAPI 3.0)
-- **Utilidades**: `bcrypt`, `multer`, `dotenv`, `cors`, `helmet`, `node-cron`
+- **Utilidades**: `bcrypt`, `multer`, `dotenv`, `cors`, `helmet`, `node-cron`, `nodemailer`
 
 ---
 
-## ⚡️ Quick Start (Recomendado con Docker)
-
-### 1. Requisitos Previos
-
-- Docker Desktop instalado y corriendo.
-
-### 2. Instalación y Ejecución
-
-```bash
-git clone https://github.com/andydev/game-manager-back.git
-cd game-manager-back
-docker compose up --build
-```
-
-¡Listo! El sistema estará corriendo en:
-
-- **API**: `http://localhost:3500`
-- **Swagger Docs**: `http://localhost:3500/api-docs`
-- **Mongo Express (DB UI)**: `http://localhost:8081`
-
 ---
 
-## ⚡️ Quick Start (Manual / Sin Docker)
+## ⚡️ Quick Start
 
 ### 1. Requisitos Previos
 
@@ -142,8 +121,6 @@ src/
 ├── utils/          # Helpers (Logger, Password hashing)
 ├── validators/     # Reglas de validación (express-validator)
 └── server.ts       # Punto de entrada de la aplicación
-Dockerfile          # Definición de la imagen Docker
-docker-compose.yml  # Orquestación de servicios
 ```
 
 ---
@@ -163,7 +140,7 @@ El proyecto cuenta con una cobertura de tests de integración crítica.
 npm test
 ```
 
-> La suite incluye **16 suites de tests de integración** con **aislamiento total de base de datos** y gestión explícita de conexiones para evitar fugas ("Open Handles").
+> La suite incluye **85+ tests** que cubren autenticación, pagos, catálogo y colecciones, con **Global Setup** para gestión eficiente de conexiones.
 
 ---
 
@@ -181,73 +158,160 @@ Desarrollado con ❤️ por **AndyDev**.
 flowchart TD
     %% Nodos Externos
     Client([👤 Cliente / Frontend])
-    DB[(🗄️ Base de Datos MongoDB)]
-    ExternalAPIs[☁️ APIs Externas\nRAWG / Steam]
+    DB[(🗄️ MongoDB)]
+    ExternalAPIs[☁️ APIs Externas<br/>RAWG / Steam]
+    FileSystem[💾 Sistema de Archivos<br/>uploads/]
 
     %% Capas del Backend
-    Routes["📍 Rutas (Routes)"]
+    Routes["📍 Rutas (Routes)<br/>/api/games, /public, /orders"]
+    Docs["📘 Swagger UI<br/>/api-docs"]
 
-    %% Middlewares
+    %% Middlewares (Pipeline)
     AuthMW["🔑 Auth Middleware"]
     RoleMW["👮 Role Middleware"]
+    UploadMW["📤 Upload Middleware<br/>(Multer)"]
     ValidMW["✅ Validator Middleware"]
     ErrorMW["🚨 Error Middleware"]
 
     %% Componentes Principales
-    Controller["🤵 Controlador"]
-    DTO["📦 DTOs"]
+    Controller["🤵 Controlador<br/>(Auth/Game/Collection/Payment/User/Order)"]
+    DTO["📦 DTOs<br/>(Validación de Tipos)"]
 
-    %% Servicios
-    CoreService["🧠 Servicio Core"]
-    IntegrationService["🔌 Servicio Integración\n(RAWG/Steam + Caché)"]
-    CronService["⏱️ Cron Service"]
+    %% Servicios Core
+    AuthService["🔐 Auth Service<br/>(Login/Register/Tokens)"]
+    GameService["🎮 Game Service<br/>(CRUD Catálogo)"]
+    CollectionService["📚 Collection Service<br/>(UserGame CRUD)"]
+    PaymentService["💳 Payment Service<br/>(Mock Checkout)"]
 
-    Model["📄 Modelo Mongoose"]
+    %% Servicios de Integración
+    IntegrationService["🔌 Integration Services<br/>(RAWG/Steam + Caché)"]
+    AggregatorService["🎯 Aggregator Service<br/>(Combina RAWG+Steam)"]
+
+    %% Servicios Auxiliares
+    FileService["📁 File Service<br/>(Gestión Archivos)"]
+    CronService["⏱️ Cron Service<br/>(Actualización Precios)"]
+    MailService["📧 Mail Service<br/>(Nodemailer)"]
+
+    %% Modelos (Base de Datos)
+    UserModel["👤 User Model"]
+    GameModel["🎮 Game Model"]
+    UserGameModel["📚 UserGame Model<br/>(Collection)"]
+    OrderModel["🧾 Order Model"]
+    RefreshTokenModel["🔑 RefreshToken Model"]
 
     %% Flujo Principal
     Client -->|1. Request| Routes
-    Routes --> AuthMW
+    Client -.->|Ver Docs| Docs
+
+    %% Bifurcación: Pública vs Privada
+    Routes -->|Ruta Privada| AuthMW
+    Routes -->|Ruta Pública<br/>/api/public| Controller
+
+    %% Pipeline de Middlewares (Orden Secuencial)
     AuthMW --> RoleMW
-    RoleMW --> ValidMW
+    RoleMW --> UploadMW
+    UploadMW --> ValidMW
     ValidMW --> Controller
 
-    %% Validaciones
-    ValidMW -.-> DTO
-    Controller -.-> DTO
+    %% Validaciones con DTOs
+    ValidMW -.->|Valida contra| DTO
+    Controller -.->|Usa| DTO
 
-    %% Lógica de Negocio
-    Controller -->|2. Llama| CoreService
-    Controller -->|2. Llama| IntegrationService
+    %% Controlador llama a Servicios
+    Controller -->|2. Llama| AuthService
+    Controller -->|2. Llama| GameService
+    Controller -->|2. Llama| CollectionService
+    Controller -->|2. Llama| PaymentService
 
-    %% Interacción con Datos y APIs
-    CoreService -->|3. Guarda/Lee| Model
-    IntegrationService -->|3. Consulta| ExternalAPIs
-    IntegrationService -->|4. Procesa| Model
+    %% Servicios Core interactúan con Modelos
+    AuthService -->|CRUD| UserModel
+    AuthService -->|Gestiona| RefreshTokenModel
+    AuthService -.->|Cascade Delete| UserGameModel
+    AuthService -.->|Cascade Delete| OrderModel
 
-    %% Automatización
-    CronService -.->|Actualiza Precios| Model
+    GameService -->|CRUD| GameModel
+    GameService -.->|Cascade Delete| UserGameModel
 
-    %% Persistencia
-    Model <-->|5. DB Ops| DB
+    CollectionService -->|CRUD| UserGameModel
+    CollectionService -->|Lee| GameModel
 
-    %% Retorno
-    CoreService -->|6. Retorna| Controller
-    IntegrationService -->|6. Retorna| Controller
+    PaymentService -->|Crea| OrderModel
+    PaymentService -->|Actualiza| UserGameModel
+    PaymentService -->|Notifica| MailService
+
+    %% Servicios usan FileService
+    AuthService -.->|Borra imágenes| FileService
+    FileService -->|Operaciones| FileSystem
+
+    %% Servicios de Integración
+    Controller -->|2. Llama| AggregatorService
+    AggregatorService -->|Consulta| IntegrationService
+    IntegrationService -->|API Calls| ExternalAPIs
+    AggregatorService -->|Guarda| GameModel
+
+    %% Cron Service (Automatización)
+    CronService -.->|Actualiza Precios<br/>Diariamente 03:00| GameModel
+
+    %% Modelos persisten en DB
+    UserModel <-->|5. DB Ops| DB
+    GameModel <-->|5. DB Ops| DB
+    UserGameModel <-->|5. DB Ops| DB
+    OrderModel <-->|5. DB Ops| DB
+    RefreshTokenModel <-->|5. DB Ops| DB
+
+    %% Retorno al Cliente
+    AuthService -->|6. Retorna| Controller
+    GameService -->|6. Retorna| Controller
+    CollectionService -->|6. Retorna| Controller
+    PaymentService -->|6. Retorna| Controller
+    AggregatorService -->|6. Retorna| Controller
+
     Controller -->|7. Response JSON| Client
 
-    %% Manejo de Errores
+    %% Manejo de Errores (Global)
     Controller -.->|Si falla| ErrorMW
     ErrorMW -.->|Error Response| Client
 
-    %% Estilos
-    style Client fill:#FFF9C4,stroke:#FBC02D,color:#000
-    style DB fill:#C8E6C9,stroke:#388E3C,color:#000
-    style ExternalAPIs fill:#E1BEE7,stroke:#8E24AA,color:#000
+    %% Estilos - Externos
+    style Client fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px,color:#000
+    style DB fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+    style ExternalAPIs fill:#E1BEE7,stroke:#8E24AA,stroke-width:2px,color:#000
+    style FileSystem fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
 
-    style Routes fill:#FFFFFF,stroke:#333,color:#000
-    style Controller fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
-    style CoreService fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
-    style IntegrationService fill:#FFFFFF,stroke:#1565C0,stroke-width:2px,color:#000
-    style CronService fill:#FFECB3,stroke:#FFC107,color:#000
-    style Model fill:#FFFFFF,stroke:#2E7D32,stroke-width:2px,color:#000
+    %% Estilos - Infraestructura
+    style Routes fill:#FFFFFF,stroke:#333,stroke-width:2px,color:#000
+    style Docs fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#000
+
+    %% Estilos - Middlewares
+    style AuthMW fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#000
+    style RoleMW fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#000
+    style UploadMW fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px,color:#000
+    style ValidMW fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style ErrorMW fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px,color:#000
+
+    %% Estilos - Controlador y DTOs
+    style Controller fill:#E3F2FD,stroke:#1565C0,stroke-width:3px,color:#000
+    style DTO fill:#FFF9C4,stroke:#F9A825,stroke-width:2px,color:#000
+
+    %% Estilos - Servicios Core
+    style AuthService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+    style GameService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+    style CollectionService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+    style PaymentService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+
+    %% Estilos - Servicios de Integración
+    style IntegrationService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+    style AggregatorService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+
+    %% Estilos - Servicios Auxiliares
+    style FileService fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#000
+    style CronService fill:#FFECB3,stroke:#FFA000,stroke-width:2px,color:#000
+    style MailService fill:#FFECB3,stroke:#FFA000,stroke-width:2px,color:#000
+
+    %% Estilos - Modelos
+    style UserModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style GameModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style UserGameModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style OrderModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style RefreshTokenModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
 ```

@@ -17,9 +17,7 @@ describe("Catalog & Collection Integration Tests", () => {
   let gameId: string;
 
   beforeAll(async () => {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI as string);
-    }
+    // Connection handled globally
     await User.deleteMany({ email: "catalogtest@example.com" });
     await Game.deleteMany({ title: "Elden Ring" });
 
@@ -59,7 +57,7 @@ describe("Catalog & Collection Integration Tests", () => {
     if (userId) {
       await UserGame.deleteMany({ user: userId });
     }
-    await mongoose.connection.close();
+    // Connection closed globally
   });
 
   test("POST /api/games should create a game in catalog", async () => {

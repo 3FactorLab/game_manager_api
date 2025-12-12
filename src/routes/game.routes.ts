@@ -65,6 +65,12 @@ router.use(checkAuth);
  *     responses:
  *       200:
  *         description: List of games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
  *     security:
  *       - bearerAuth: []
  */
@@ -112,6 +118,10 @@ router.get("/", searchGameValidator, search);
  *     responses:
  *       201:
  *         description: Game created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
  *       400:
  *         description: Bad request
  *         content:
@@ -150,6 +160,12 @@ router.post(
  *     responses:
  *       200:
  *         description: List of games from RAWG
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
  *     security:
  *       - bearerAuth: []
  */
@@ -168,6 +184,10 @@ router.get("/search", checkAuth, validateSearchExternal, searchExternal);
  *     responses:
  *       200:
  *         description: Game details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
  *     security:
  *       - bearerAuth: []
  */
@@ -247,6 +267,10 @@ router.delete("/:id", isAdmin, deleteGame);
  *     responses:
  *       200:
  *         description: Game updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
  *       404:
  *         description: Game not found
  *         content:
@@ -294,6 +318,22 @@ router.put(
  *     responses:
  *       201:
  *         description: Game created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post(
   "/from-rawg",

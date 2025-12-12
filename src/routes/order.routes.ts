@@ -19,6 +19,14 @@ const router = Router();
  *     responses:
  *       200:
  *         description: List of orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Order'
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/my-orders", checkAuth, orderController.getMyOrders);
 

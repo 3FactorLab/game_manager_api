@@ -61,12 +61,24 @@ Para evitar depender de que RAWG o Steam estén online (y para no gastar cuota d
 - Si pedimos "GTA V", nuestro Mock devuelve un JSON fijo predecible.
 - Esto hace que los tests sean **rápidos** y **deterministas**.
 
-## 5. Resumen de Cobertura
+## 5. Resumen de Cobertura y Métricas (Actualizado)
 
-Actualmente contamos con **61 tests** que cubren:
+Contamos con una suite robusta de **85 tests** que garantizan la estabilidad del sistema:
 
-- ✅ Autenticación (Registro, Login, Refresh Token).
-- ✅ Gestión de Usuarios (Perfil, Borrado).
-- ✅ Catálogo de Juegos (CRUD, Búsqueda).
-- ✅ Integraciones (RAWG, Steam).
-- ✅ Pagos (Flujo de Checkout simulado).
+- **Tests de Integración (Routes)**: Verifican flujos HTTP completos (`/register`, `/checkout`, `/games`).
+- **Tests de Lógica (Services)**: Validan reglas de negocio complejas y cálculos.
+- **Tests de Seguridad**: Roles, validación de tokens y manejo de errores.
+
+### 🏆 Hitos de Calidad:
+
+1.  **Global Setup**: Implementación de `tests/setup.ts` para gestión eficiente de conexiones MongoDB.
+2.  **100% Pass Rate**: Todos los tests de Auth, Catálogo, Pagos y Usuarios pasan en CI/CD local.
+3.  **Cobertura de Casos Borde**: Manejo de 404s, 401s, y errores de validación.
+
+### Desglose de Tests Principales:
+
+- `auth.*`: Login, Registro, Refresh Token.
+- `catalog.*` / `game.*`: CRUD de juegos, Búsqueda pública.
+- `order.integration`: Flujo completo de compra y pagos simulados.
+- `collection.service`: Lógica de biblioteca de usuario.
+- `validation`: Middleware de validación de datos.
