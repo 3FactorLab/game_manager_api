@@ -75,6 +75,9 @@ export const getCollection = async (
   const totalResult = await UserGame.aggregate(countPipeline);
   const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
+  // Ordenar por fecha de actualización (más recientes primero)
+  pipeline.push({ $sort: { updatedAt: -1 } });
+
   // Paginar
   pipeline.push({ $skip: skip });
   pipeline.push({ $limit: limit });
