@@ -40,6 +40,14 @@ export const searchGameValidator = [
     .withMessage("Limit must be between 1 and 100"),
   query("genre").optional().isString().trim(),
   query("platform").optional().isString().trim(),
+  query("sortBy")
+    .optional()
+    .isIn(["price", "releaseDate", "title", "genre", "platform", "score"])
+    .withMessage("Invalid sortBy field"),
+  query("order")
+    .optional()
+    .isIn(["asc", "desc"])
+    .withMessage("Order must be asc or desc"),
   validateResult,
 ];
 

@@ -10,6 +10,7 @@ import {
   getCatalogGameById,
   deleteCatalogGame,
   updateCatalogGame,
+  getFilters,
 } from "../services/game.service";
 import { searchGames as searchRAWG } from "../services/rawg.service";
 import { getCompleteGameData } from "../services/game-aggregator.service";
@@ -44,7 +45,7 @@ export const create = asyncHandler(
 // Parses query parameters for filtering and pagination.
 export const search = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { query, page, limit, genre, platform } = req.query;
+    const { query, page, limit, genre, platform, sortBy, order } = req.query;
 
     // Validation is handled by express-validator middleware
     const pageNum = page ? parseInt(page as string) : 1;
@@ -55,9 +56,21 @@ export const search = asyncHandler(
       pageNum,
       limitNum,
       genre as string,
-      platform as string
+      platform as string,
+      sortBy as string,
+      order as "asc" | "desc"
     );
     res.json(result);
+  }
+);
+
+// Get filters (Genres & Platforms)
+// Destination: Used in src/routes/game.routes.ts (GET /filters).
+// Endpoint: GET /api/games/filters
+export const getFiltersEndpoint = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const filters = await getFilters();
+    res.json(filters);
   }
 );
 

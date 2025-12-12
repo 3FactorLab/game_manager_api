@@ -13,7 +13,9 @@ beforeAll(async () => {
     if (!uri) {
       throw new Error("MONGODB_URI is not defined in .env");
     }
-    await mongoose.connect(uri);
+    await mongoose.connect(uri, {
+      dbName: "game-manager-test",
+    });
   }
 });
 

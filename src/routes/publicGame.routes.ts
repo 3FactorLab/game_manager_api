@@ -3,7 +3,11 @@
  * @description Read-only public access to the game catalog. Mirrors the protected catalog endpoints but without auth.
  */
 import express from "express";
-import { search, getOne } from "../controllers/game.controller";
+import {
+  search,
+  getOne,
+  getFiltersEndpoint,
+} from "../controllers/game.controller";
 import { searchGameValidator } from "../validators/game.validator";
 
 const router = express.Router();
@@ -60,6 +64,7 @@ const router = express.Router();
  *               $ref: '#/components/schemas/ErrorResponse'
  *     security: []
  */
+router.get("/filters", getFiltersEndpoint);
 router.get("/", searchGameValidator, search);
 
 /**

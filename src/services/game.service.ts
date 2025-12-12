@@ -8,21 +8,56 @@ import mongoose from "mongoose";
 import UserGame from "../models/userGame.model";
 // ...
 
+// Search games with advanced filtering and sorting
 export const searchGames = async (
   query: string,
   page: number = 1,
   limit: number = 10,
   genre?: string,
-  platform?: string
+  platform?: string,
+  sortBy: string = "releaseDate",
+  order: "asc" | "desc" = "desc"
 ) => {
   const filter: any = {};
-  if (query) filter.title = { $regex: query, $options: "i" };
+
+  // Multi-field search using $or operator (Title, Genre, Developer, Publisher, Platform)
+  // This allows finding "Cyber" -> "Cyberpunk" across multiple fields
+  if (query) {
+    const regex = { $regex: query, $options: "i" };
+    filter.$or = [
+      { title: regex },
+      { genre: regex },
+      { developer: regex },
+      { publisher: regex },
+      { platform: regex },
+    ];
+  }
+
+  // Exact filters
   if (genre) filter.genre = genre;
   if (platform) filter.platform = platform;
 
   const skip = (page - 1) * limit;
 
-  const games = await Game.find(filter).skip(skip).limit(limit);
+  // Sorting logic
+  const sortOptions: any = {};
+  // Handle specific sort fields
+  if (sortBy === "price") {
+    // Sort by base price
+    sortOptions["price"] = order === "asc" ? 1 : -1;
+  } else {
+    // Default sorting
+    sortOptions[sortBy] = order === "asc" ? 1 : -1;
+  }
+
+  // CRITICAL: Always add _id as secondary sort to ensure deterministic ordering
+  // This prevents duplicate games across pages when primary sort field has duplicates
+  sortOptions["_id"] = 1;
+
+  const games = await Game.find(filter)
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(limit);
   const total = await Game.countDocuments(filter);
 
   return {
@@ -30,6 +65,17 @@ export const searchGames = async (
     total,
     page,
     totalPages: Math.ceil(total / limit),
+  };
+};
+
+// Get distinct filters (Genres and Platforms)
+// Helper method for the frontend to populate filter dropdowns
+export const getFilters = async () => {
+  const genres = await Game.distinct("genre");
+  const platforms = await Game.distinct("platform");
+  return {
+    genres: genres.filter(Boolean).sort(),
+    platforms: platforms.filter(Boolean).sort(),
   };
 };
 

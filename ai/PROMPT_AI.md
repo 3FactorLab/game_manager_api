@@ -24,6 +24,7 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
 - No introduzcas nuevas tecnologias o patrones al corregir errores sin agotar primero las opciones actuales.
 - Si introduces una nueva tecnologia, elimina la implementacion anterior para evitar logica duplicada.
 - No quiero que se borre la base de datos al crear tests. nunca uses deleteMany({}) si va a crear borrados innecesarios de la base de datos.
+- **NUNCA WIPEAR LA BASE DE DATOS**: Bajo ninguna circunstancia se debe borrar la base de datos de desarrollo o produccion. Los tests deben correr en un entorno aislado.
 
 ## 4. Organizacion y mantenimiento
 
