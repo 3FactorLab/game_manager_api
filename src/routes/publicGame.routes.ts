@@ -8,7 +8,8 @@ import {
   getOne,
   getFiltersEndpoint,
 } from "../controllers/game.controller";
-import { searchGameValidator } from "../validators/game.validator";
+import { searchGameSchema } from "../validators/zod/game.schema";
+import { validateZod } from "../middleware/zod.middleware";
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ const router = express.Router();
  *     security: []
  */
 router.get("/filters", getFiltersEndpoint);
-router.get("/", searchGameValidator, search);
+router.get("/", validateZod(searchGameSchema, "query"), search);
 
 /**
  * @swagger

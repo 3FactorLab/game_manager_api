@@ -8,10 +8,37 @@ Definimos nuestro estilo arquitectónico como **"Layered REST API with Service-O
 
 Esta arquitectura se sostiene sobre **4 Pilares Fundamentales**:
 
-1.  **Layered Architecture**: Separación estricta (Controller -> Service -> Model).
-2.  **Service Pattern**: Lógica de negocio pura y reutilizable.
-3.  **DTO Pattern**: Validación estricta de entrada.
-4.  **Middleware Pipeline**: Gestión de seguridad y errores centralizada.
+### 1. Layered Architecture (Separación de Responsabilidades)
+
+Separamos estrictamente el código en **Controller ⮕ Service ⮕ Model**.
+
+- **¿Por qué?**: Esto desacopla la lógica de transporte (HTTP) de la lógica de negocio. Si mañana cambiamos Express por Fastify, o REST por GraphQL, los Servicios y Modelos permanecen intactos.
+
+### 2. Service Pattern (Lógica Centralizada)
+
+Toda la "inteligencia" del negocio vive en los Servicios, nunca en los Controladores.
+
+- **¿Por qué?**: Evita los "Fat Controllers". Nos permite reutilizar la misma lógica (ej: crear juego) desde múltiples puntos de entrada: una petición HTTP, un script de semilla, una tarea CRON o un test unitario.
+
+### 3. DTO Pattern (Seguridad y Contratos)
+
+Usamos Data Transfer Objects (con Zod) para validar datos antes de que toquen nuestra lógica.
+
+- **¿Por qué?**: Garantiza `Type Safety` y previene inyecciones de datos basura. Actúa como un firewall de aplicación: si el JSON no cumple el esquema, la petición se rechaza automáticamente (Fail-Fast).
+
+### 4. Middleware Pipeline (AOP)
+
+Implementamos la seguridad y el manejo de errores como capas transversales.
+
+- **¿Por qué?**: Mantiene el código de negocio limpio. No tenemos `try/catch` o verificaciones de `isAdmin` dispersas por todos los servicios; están centralizadas en middlewares reutilizables.
+
+---
+
+### 📐 Principios de Diseño Aplicados
+
+- **S.O.L.I.D.**: Especial énfasis en **Single Responsibility**. Cada archivo, función o clase tiene un único propósito claro (ej: `AuthService` solo maneja auth, `MailService` solo envía correos).
+- **D.R.Y. (Don't Repeat Yourself)**: Abstraemos lógica repetitiva en utilidades y servicios base para evitar duplicidad y facilitar el mantenimiento.
+- **Fail-Fast**: Validamos la configuración (`env.ts`) y los datos de entrada al inicio. Es mejor que la aplicación falle al arrancar (si falta una API Key) a que falle silenciosamente en producción.
 
 ---
 
@@ -22,10 +49,10 @@ Este es el mapa completo del sistema, mostrando cómo interactúan todas las cap
 ```mermaid
 flowchart TD
     %% Nodos Externos
-    Client([👤 Cliente / Frontend])
-    DB[(🗄️ MongoDB)]
-    ExternalAPIs[☁️ APIs Externas<br/>RAWG / Steam]
-    FileSystem[💾 Sistema de Archivos<br/>uploads/]
+    Client(["👤 Cliente / Frontend"])
+    DB[("🗄️ MongoDB")]
+    ExternalAPIs["☁️ APIs Externas<br/>RAWG / Steam"]
+    FileSystem["💾 Sistema de Archivos<br/>uploads/"]
 
     %% Capas del Backend
     Routes["📍 Rutas (Routes)<br/>/api/games, /public, /orders"]
@@ -44,7 +71,7 @@ flowchart TD
 
     %% Servicios Core
     AuthService["🔐 Auth Service<br/>(Login/Register/Tokens)"]
-    GameService["🎮 Game Service<br/>(CRUD Catálogo)"]
+    GameService["🎮 Game Service<br/>(CRUD + Advanced Search)"]
     CollectionService["📚 Collection Service<br/>(UserGame CRUD)"]
     PaymentService["💳 Payment Service<br/>(Mock Checkout)"]
 
@@ -65,12 +92,12 @@ flowchart TD
     RefreshTokenModel["🔑 RefreshToken Model"]
 
     %% Flujo Principal
-    Client -->|1. Request| Routes
-    Client -.->|Ver Docs| Docs
+    Client -->|"1. Request"| Routes
+    Client -.->|"Ver Docs"| Docs
 
     %% Bifurcación: Pública vs Privada
-    Routes -->|Ruta Privada| AuthMW
-    Routes -->|Ruta Pública<br/>/api/public| Controller
+    Routes -->|"Ruta Privada"| AuthMW
+    Routes -->|"Ruta Pública<br/>/api/public"| Controller
 
     %% Pipeline de Middlewares (Orden Secuencial)
     AuthMW --> RoleMW
@@ -109,7 +136,7 @@ flowchart TD
     FileService -->|Operaciones| FileSystem
 
     %% Servicios de Integración
-    Controller -->|2. Llama| AggregatorService
+    Controller -->|"2. Import (Admin)"| AggregatorService
     AggregatorService -->|Consulta| IntegrationService
     IntegrationService -->|API Calls| ExternalAPIs
     AggregatorService -->|Guarda| GameModel
@@ -195,31 +222,78 @@ Para facilitar la lectura, hemos codificado los componentes por colores según s
 
 ---
 
+## 📂 Estructura del Proyecto
+
+Mapa de navegación para desarrolladores:
+
+```text
+backend/
+├── src/
+│   ├── config/         # ⚙️ DB, Swagger, Env Vars
+│   ├── controllers/    # 🎮 API Handlers (Request -> Service -> Reponse)
+│   ├── models/         # 🗄️ Mongoose Schemas (Data Definition)
+│   ├── routes/         # 📍 Express Router (Endpoints)
+│   ├── services/       # 🧠 Business Logic (The Core)
+│   ├── middleware/     # 🛡️ Auth, Error, Validation Rules
+│   ├── utils/          # 🛠️ Helpers (Logger, ApiError)
+│   ├── scripts/        # 🤖 Automation Tools (Import/Seed)
+│   └── app.ts          # 🚀 Entry Point
+├── tests/              # 🧪 Jest Integration/Unit Tests
+├── docs/               # 📘 Documentation
+└── package.json        # 📦 Dependencies
+```
+
+---
+
 ## 🧩 Componentes del Sistema (Detalle)
 
 ### 1. Configuración (`src/config/`)
 
-Gestiona conexiones y entorno. **`env.ts`** implementa "Fail-Fast": si falta una variable crítica, la app explota al inicio (seguridad).
+Gestiona el entorno y las conexiones externas.
+
+- **Validación Zod**: Usamos `env.ts` para validar variables de entorno al arranque. Si falta `DB_URI` o `JWT_SEC`, la app falla inmediatamente ("Fail-Fast"), previniendo errores en runtime.
+- **Singleton DB**: `db.ts` asegura una única conexión a MongoDB optimizada con pool de conexiones.
 
 ### 2. Modelos (`src/models/`)
 
-Esquemas Mongoose con Tipado Estricto.
+Definiciones de esquema Mongoose con **Strict Typing**.
 
-- **User**, **Game**, **UserGame**, **Order**, **RefreshToken**.
+- **Features Avanzadas**:
+  - _Text Indexes_: Para búsquedas ponderadas.
+  - _Compound Indexes_: Para unicidad compleja (ej: `title` + `platform` deben ser únicos).
+  - _Virtuals_: Campos calculados que no se guardan en DB (ej: URLs de imágenes completas).
+  - _Hooks_: Middleware pre/post save para hashing de contraseñas o limpieza de datos.
 
 ### 3. Rutas & Controladores (`src/routes/`, `src/controllers/`)
 
-Transforman HTTP Requests en llamadas a Servicios.
+La capa de entrada HTTP.
 
-- **Regla**: Zero Lógica de Negocio. Solo orquestación.
+- **Rutas**: Mapean verbos HTTP (GET, POST) a métodos del controlador, aplicando middlewares en cadena (`Auth -> Role -> Upload -> Validate`).
+- **Controladores**: Siguen la filosofía **"Thin Controller"**. Su única responsabilidad es:
+  1. Recibir `req` y extraer datos.
+  2. Lamar al Servicio correspondiente.
+  3. Devolver `res` (JSON 200/201) o pasar el error a `next()`.
+  - _Nota_: No contienen lógica de negocio (no calculan precios, no validan reglas complejas).
 
 ### 4. Servicios (`src/services/`)
 
-El cerebro de la aplicación.
+El núcleo de la lógica de negocio.
 
-- **Core**: lógicas CRUD y de negocio (`Auth`, `Game`, `Collection`).
-- **Integración**: Wrappers para APIs externas (`RAWG`, `Steam`).
-- **Infraestructura**: Abstacciones técnicas (`File`, `Cron`, `Mail`).
+- **Core Services**: (`Auth`, `Game`, `Collection`) Manejan reglas de negocio puras.
+- **Integration Services**: (`RAWG`, `Steam`) Actúan como **Adapters**, transformando respuestas de APIs externas sucias en nuestros modelos internos limpios.
+- **Infrastructure Services**: (`Mail`, `File`, `Cron`) Abstacciones para herramientas del sistema, permitiendo cambiarlas sin afectar al negocio.
+
+### 5. Utilities (`src/utils/`)
+
+Herramientas transversales para reducir boilerplate.
+
+- **`ApiError`**: Clase extendida de `Error` que añade `statusCode`. Permite lanzar errores controlados: `throw new ApiError(404, 'Juego no encontrado')`.
+- **`asyncHandler`**: Wrapper de orden superior que envuelve todos los controladores para capturar promesas rechazadas automáticamente, eliminando la necesidad de `try/catch` en cada controlador.
+
+### 6. Tipado y DTOs (`src/types/`, `src/dtos/`)
+
+- **DTOs (Zod)**: Validación en **Runtime**. Aseguran que lo que entra por la API es válido.
+- **Interfaces (TS)**: Validación en **Compile-time**. Aseguran que nuestro código interno es consistente.
 
 ---
 
@@ -246,31 +320,164 @@ erDiagram
     REFRESHTOKEN }o--|| USER : "belongs to"
 ```
 
+> [!NOTE] > **Punto Pivote**: La tabla `USERGAME` es el corazón de la "Colección". No duplicamos datos del juego; solo guardamos una referencia (`gameId`) y el estado de propiedad (`isOwned`, `playtime`). Esto mantiene la base de datos ligera.
+
 ---
 
-## 🔐 Seguridad: Sistema Dual Token (Deep Dive)
+## 🔐 Seguridad: Defensa en Profundidad
 
-1.  **Access Token (15 min)**: JWT firmado. Stateless.
-2.  **Refresh Token (7 días)**: Token opaco en DB. Stateful.
+Aplicamos una estrategia de **"Defense in Depth"** con múltiples capas de protección:
+
+### Nivel 1: Infraestructura (Hardening)
+
+Protegemos el servidor antes de que la petición toque el código de negocio:
+
+- **Helmet**: Configura cabeceras HTTP seguras (HSTS, No-Sniff, XSS Filter) para prevenir ataques comunes.
+- **CORS**: Política estricta de orígenes (`credentials: true`) para evitar peticiones no autorizadas desde otros dominios.
+- **Rate Limiting**: Protección contra fuerza bruta y DDoS, limitando el número de peticiones por IP en una ventana de tiempo.
+
+### Nivel 2: Autenticación (Dual Token System)
+
+Implementamos **JWT (JSON Web Tokens)** con rotación para equilibrar seguridad y UX.
+
+#### Flujo 1: Login & Access
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 Usuario
+    participant A as AuthController
+    participant DB as 🗄️ MongoDB
+
+    U->>A: Login(user, pass)
+    A->>DB: Validate Credentials
+    DB-->>A: User OK
+    A->>A: Generate AccessToken (15m)
+    A->>A: Generate RefreshToken (7d)
+    A->>DB: Save RefreshToken (Rotation)
+    A-->>U: { accessToken, refreshToken }
+```
+
+> [!TIP] > **¿Por qué es seguro?**
+> Si un ladrón roba el **Access Token**, solo tiene 15 minutos de acceso. Si roba el **Refresh Token** e intenta usarlo, el sistema detectará que ese token ya fue usado (reuse detection) e invalidará **inmediatamente** todos los tokens del usuario legítimo, forzando un nuevo login seguro.
+
+#### Flujo 2: Refresh Rotation (Antirrobo)
+
+1. **Access Token (15 min)**: JWT firmado. Stateless.
+2. **Refresh Token (7 días)**: Token opaco en DB. Stateful.
 
 **Estrategia de Rotación**:
 Cada uso del Refresh Token genera uno nuevo y borra el anterior. Esto permite detectar robos: si alguien intenta usar un token viejo, invalidamos toda la familia de tokens del usuario.
+
+### Nivel 3: Datos y Validación
+
+- **Input Validation (Zod)**: Actúa como un firewall de aplicación. Si el payload JSON no cumple el esquema estricto, la petición se rechaza antes de procesarse.
+- **Password Hashing**: Usamos **Bcrypt** con salt rounds para asegurar que las contraseñas nunca se guarden en texto plano.
 
 ---
 
 ## 🔄 Flujo de Datos: "La Vida de una Petición"
 
-Veamos paso a paso qué ocurre cuando creas un juego (`POST /api/games`):
+Veamos paso a paso qué ocurre cuando creas un juego (`POST /api/games`) para entender cómo interactúan las capas.
 
-1.  **Petición**: El Frontend envía JSON + Header `Authorization`.
-2.  **Middleware Auth**: Verifica validez del Access Token.
-3.  **Middleware Role**: Verifica si `user.role === 'admin'`.
-4.  **Middleware Validation**: Compara `req.body` contra `CreateGameDto`.
-5.  **Controlador**: Recibe datos limpios, llama a `GameService.create()`.
-6.  **Servicio**: Aplica reglas de negocio y llama a `GameModel.create()`.
-7.  **DB**: Mongoose guarda el documento en MongoDB.
-8.  **Respuesta**: Se devuelve `201 Created` al cliente.
-9.  **Error Handling**: Si algo falla, `ErrorMiddleware` captura la excepción y normaliza la respuesta JSON.
+### Diagrama de Secuencia (Middleware Chain)
+
+```mermaid
+sequenceDiagram
+    participant C as 👤 Client
+    participant M1 as 🛡️ Auth Middleware
+    participant M2 as 👮 Role Middleware
+    participant M3 as 🔍 Zod Validation
+    participant Ctrl as 🎮 Game Controller
+    participant Svc as 🧠 Game Service
+    participant DB as 🗄️ MongoDB
+    participant Err as 🚨 Global Error Handler
+
+    C->>M1: POST /api/games (Token + JSON)
+
+    alt Invalid Token
+        M1-->>C: 401 Unauthorized
+    else Valid Token
+        M1->>M2: next(user)
+
+        alt Not Admin
+            M2-->>C: 403 Forbidden
+        else Is Admin
+            M2->>M3: next()
+
+            alt Invalid JSON
+                M3-->>C: 400 Bad Request
+            else Valid Payload
+                M3->>Ctrl: next()
+                Ctrl->>Svc: create(dto)
+                Svc->>DB: save()
+                DB-->>Svc: Document
+                Svc-->>Ctrl: Game Object
+                Ctrl-->>C: 201 Created (JSON)
+            end
+        end
+    end
+
+    opt Any Error
+        Svc--xErr: throw Error
+        Err-->>C: 500 Internal Server Error (JSON)
+    end
+```
+
+### Análisis Paso a Paso
+
+1. **Request**: El Frontend envía el payload JSON y el Header `Authorization: Bearer <token>`.
+2. **Middleware Chain**:
+   - **Auth**: Descodifica el JWT. Si expiro, devuelve `401`. Si es válido, inyecta `req.user`.
+   - **Role**: Verifica `req.user.role`. Si no es 'admin', corta el flujo con `403`.
+   - **Validation**: Zod compara el `body` contra el esquema. Si falta un campo requerido, devuelve `400` con detalles.
+3. **Controller**:
+   - Recibe la petición **limpia y segura**.
+   - Extrae los datos y delega al Servicio: `GameService.create(req.body)`.
+4. **Service**:
+   - Aplica lógica de negocio (ej: verificar si el título ya existe).
+   - Llama al Modelo para persistir en DB.
+5. **Error Handling (Catch-All)**:
+   - Si la DB falla o el servicio lanza un error, **NO** enviamos el stack trace al usuario.
+   - El `ErrorMiddleware` captura la excepción, loguea el error real (para devs) y devuelve un JSON estandarizado al cliente.
+
+---
+
+---
+
+## 🌐 Estrategia de Integración (RAWG + Steam)
+
+Para construir nuestro catálogo, utilizamos un enfoque híbrido conocido como **"Best Governing Source"**. No confiamos en una sola API para todos los datos, sino que combinamos lo mejor de cada proveedor.
+
+### 1. Filosofía de "Source of Truth"
+
+- **RAWG (Metadatos Estáticos)**: Es nuestra fuente para lo "visual" y descriptivo (Título, Descripción, Géneros, Screenshots).
+  - _Razón_: Su base de datos es enorme y visualmente rica.
+- **Steam (Datos Comerciales)**: Es nuestra fuente para lo "económico" (Precio, Moneda, Descuentos).
+  - _Razón_: RAWG no tiene precios en tiempo real. Steam es la plataforma de venta real.
+
+### 2. Algoritmo de Agregación (`AggregatorService`)
+
+El proceso de importación no es una simple copia; es una construcción inteligente:
+
+1. **Fetch Metadata**: Obtenemos el juego base de RAWG.
+2. **Extract AppID**: Analizamos la lista de "stores" en la respuesta de RAWG buscar el enlace a Steam (ej: `store.steampowered.com/app/12345`).
+3. **Fetch Price**: Usamos ese ID (`12345`) para consultar la API pública de Steam Store.
+4. **Merge & Normalize**: Creamos un objeto `Game` unificado. Si Steam falla o no existe, el juego se crea "sin precio" (o precio 0), pero nunca descartamos los datos valiosos de RAWG.
+
+### 3. Flujo Automático (Scripting & Seeding)
+
+Más allá de la importación individual, disponemos de herramientas para poblar la base de datos masivamente:
+
+1. **Herramienta de Importación (`src/scripts/import-pc-games.ts`)**:
+
+   - Script de consola que orquesta la carga masiva.
+   - **Lógica**: `RAWG Popular` -> `Filter Duplicates` -> `Enrich (Steam)` -> `Construct Schema`.
+   - **Persistencia Dual**: Si se usa el flag `--commit`, guarda en MongoDB **Y** añade el registro a `data/games.json`.
+
+2. **Estrategia de Seeds (`src/seeds/seed.ts`)**:
+   - Usa `data/games.json` como "Source of Truth" persistente.
+   - Permite restaurar o sincronizar la DB en cualquier entorno (`dev`, `prod`) ejecutando `npm run seed`.
+   - Valida estrictamente los datos contra el Schema de Mongoose al insertar (`runValidators: true`).
 
 ---
 
@@ -299,6 +506,9 @@ sequenceDiagram
     end
 ```
 
+> [!TIP] > **¿Por qué es seguro?**
+> Si un ladrón roba el **Access Token**, solo tiene 15 minutos de acceso. Si roba el **Refresh Token** e intenta usarlo, el sistema detectará que ese token ya fue usado (reuse detection) e invalidará **inmediatamente** todos los tokens del usuario legítimo, forzando un nuevo login seguro.
+
 ### 2. Compra y Activación
 
 ```mermaid
@@ -322,6 +532,8 @@ sequenceDiagram
     PS-->>C: Success JSON
 ```
 
+> [!IMPORTANT] > **Performance**: Usamos `Promise.all` (Parallel Processing) para activar los juegos y enviar el correo simultáneamente. El usuario recibe su respuesta "Success" sin tener que esperar a que el servidor SMTP termine de enviar el email.
+
 ### 3. Cascade Delete (Integridad)
 
 ```mermaid
@@ -331,6 +543,82 @@ flowchart TD
     User -.->|Borra| Collection[📚 UserCollection]
     User -.->|Borra| Orders[🧾 Orders]
 ```
+
+### 4. Importación y Agregación de Datos
+
+Este flujo ilustra la estrategia "Dual-DataSource" para crear juegos:
+
+```mermaid
+sequenceDiagram
+    participant Admin as 🛡️ Admin
+    participant GC as GameController
+    participant AggS as AggregatorService
+    participant RAWG as 🌐 RAWG API
+    participant Steam as ☁️ Steam API
+    participant GM as Game Model
+
+    Admin->>GC: POST /games/from-rawg (rawgId)
+    GC->>AggS: getCompleteGameData(rawgId)
+
+    rect rgb(240, 248, 255)
+        note right of AggS: Fase 1: Metadata Estática
+        AggS->>RAWG: Get Details
+        RAWG-->>AggS: { title, desc, images... }
+    end
+
+    rect rgb(255, 240, 245)
+        note right of AggS: Fase 2: Precios Dinámicos
+        AggS->>Steam: Get Price (AppID)
+        alt Steam Data Found
+            Steam-->>AggS: { price, discount, currency }
+        else Not Found
+            Steam-->>AggS: null (skip price)
+        end
+    end
+
+    AggS->>AggS: Normalizar y Fusionar Datos
+    AggS-->>GC: GameData Object
+
+    GC->>GM: create(GameData)
+    GM-->>GC: 💾 Saved Document
+    GC-->>Admin: 201 Created JSON
+```
+
+> [!NOTE] > **Integridad de Datos**: Al separar los datos en "Estáticos" (RAWG) y "Dinámicos" (Steam), obtenemos lo mejor de dos mundos: la belleza visual de RAWG y la precisión financiera de Steam, sin riesgo de sobrescribir datos críticos manualmente.
+
+### 5. Búsqueda y Filtrado Avanzado
+
+La lógica de búsqueda (`GameService.searchGames`) es un motor híbrido que combina:
+
+1. **Weighted Text Search**: Usa índices de texto de MongoDB para buscar en Title (x10), Genre (x5), Developer (x3) y Publisher (x3).
+2. **Query Builder Dinámico**: Construye filtros `$or` y `$and` al vuelo basados en los parámetros de la URL.
+3. **Compound Sorting**: Siempre añade `_id` como criterio secundario para garantizar paginación determinista (`{ price: -1, _id: 1 }`).
+
+```mermaid
+sequenceDiagram
+    participant C as 👤 Cliente
+    participant GC as GameController
+    participant GS as GameService
+    participant DB as 🗄️ MongoDB
+
+    Note over C, GC: Query: "?q=Cyber&sort=price"
+    C->>GC: GET /api/games/search
+    GC->>GS: searchGames(q="Cyber", sort="price")
+
+    rect rgb(255, 250, 240)
+        note right of GS: Construcción de Query
+        GS->>GS: 1. Regex $or [Title, Genre, Dev...]
+        GS->>GS: 2. Filtros [Platform, Genre]
+        GS->>GS: 3. Sort { price: 1, _id: 1 }
+    end
+
+    GS->>DB: find(filter).sort().skip().limit()
+    DB-->>GS: [GameDocuments] + Count
+    GS-->>GC: { games, total, pages }
+    GC-->>C: JSON Response
+```
+
+> [!TIP] > **UX Optimization**: El ordenamiento secundario por `_id` es crucial. Sin él, si dos juegos tienen el mismo precio, MongoDB podría devolverlos en orden aleatorio entre páginas, haciendo que el usuario vea duplicados o pierda juegos al navegar.
 
 ---
 
@@ -364,24 +652,54 @@ Seguimos estándares académicos estrictos (`PROMPT_AI.md`).
 
 **Todos los archivos incluyen**:
 
-1.  **Cabecera de Archivo**:
-    ```typescript
-    /**
-     * @file auth.service.ts
-     * @description Handles authentication business logic
-     */
-    ```
-2.  **Comentarios de Función**:
-    ```typescript
-    /**
-     * @param email - User email
-     * @returns Auth tokens
-     */
-    ```
-3.  **Comentarios de Destino**:
-    ```typescript
-    // Destination: Used by AuthController.login
-    export const login = ...
-    ```
+1. **Cabecera de Archivo**:
+
+   ```typescript
+   /**
+    * @file auth.service.ts
+    * @description Handles authentication business logic
+    */
+   ```
+
+2. **Comentarios de Función**:
+
+   ```typescript
+   /**
+    * @param email - User email
+    * @returns Auth tokens
+    */
+   ```
+
+3. **Comentarios de Destino**:
+
+   ```typescript
+   // Destination: Used by AuthController.login
+   export const login = ...
+   ```
 
 **Cumplimiento**: 100% de la codebase documentada bajo este estándar.
+
+---
+
+## 🚀 Requisitos de Entorno (Deployment)
+
+Para desplegar la aplicación, las siguientes variables son obligatorias en `.env`:
+
+| Variable             | Descripción               | Ejemplo                               |
+| :------------------- | :------------------------ | :------------------------------------ |
+| `PORT`               | Puerto del servidor       | `3500`                                |
+| `DB_URI`             | Connection String MongoDB | `mongodb://localhost:27017/gamestore` |
+| `JWT_ACCESS_SECRET`  | Firma para Access Tokens  | `secret_key_123`                      |
+| `JWT_REFRESH_SECRET` | Firma para Refresh Tokens | `refresh_key_456`                     |
+| `RAWG_API_KEY`       | Key para importar juegos  | `your_rawg_key`                       |
+| `SMTP_HOST`          | Servidor de Correo        | `smtp.gmail.com`                      |
+| `SMTP_USER`          | Usuario de Correo         | `user@gmail.com`                      |
+| `SMTP_PASS`          | Contraseña de Aplicación  | `app_password_xyz`                    |
+
+### Comandos Clave
+
+- **Dev**: `npm run dev` (Hot Reload)
+- **Build**: `npm run build` (Compila TS a JS en `/dist`)
+- **Start**: `npm start` (Ejecuta `/dist/server.js`)
+- **Seed**: `npm run seed` (Restaura DB desde JSON)
+- **Test**: `npm test` (Ejecuta suite Jest)

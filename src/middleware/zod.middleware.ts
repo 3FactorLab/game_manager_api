@@ -8,21 +8,22 @@ import { Request, Response, NextFunction } from "express";
 import { ZodSchema, ZodError } from "zod";
 
 export const validateZod =
-  (schema: ZodSchema) =>
+  (schema: ZodSchema, source: "body" | "query" | "params" = "body") =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Parse request body against schema
-      // We use parseAsync to support async refinements if needed
-      await schema.parseAsync(req.body);
+      // Select data source based on argument
+      const dataToValidate = req[source];
+
+      // Parse request data against schema
+      await schema.parseAsync(dataToValidate);
       next();
     } catch (error) {
       if (error instanceof ZodError) {
         // Map Zod errors to the format expected by our frontend
-        // Current format: { errors: [{ msg: "Message", path: "field" }] }
         const formattedErrors = error.issues.map((issue) => ({
           msg: issue.message,
           path: issue.path.join("."),
-          location: "body", // Mimic express-validator location
+          location: source, // Correctly report location
         }));
 
         return res.status(400).json({ errors: formattedErrors });

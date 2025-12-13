@@ -2,7 +2,7 @@
 
 ## 1. Descripción General
 
-El sistema de autenticación es la puerta de entrada segura a la API. Utiliza el estándar **JWT (JSON Web Tokens)** para mantener sesiones sin estado (stateless), lo que permite una escalabilidad horizontal sencilla.
+El sistema de autenticación es la puerta de entrada segura a la API. Utiliza un **Sistema de Dual Token (Access + Refresh)** para mantener sesiones seguras y escalables, minimizando la ventana de exposición en caso de robo de credenciales.
 
 ## 2. Componentes Implementados
 
@@ -39,14 +39,14 @@ El sistema de autenticación es la puerta de entrada segura a la API. Utiliza el
 
 ## 3. Flujo de Datos (Login)
 
-1.  **Cliente** envía `POST /login` con email/pass.
-2.  **Controller** llama a `AuthService.login`.
-3.  **Service** busca usuario en BD y compara hashes con `bcrypt`.
-4.  **Service** genera JWTs firmados con `JWT_SECRET`.
-5.  **Controller** responde con `{ user, accessToken, refreshToken }`.
+1. **Cliente** envía `POST /login` con email/pass.
+2. **Controller** llama a `AuthService.login`.
+3. **Service** busca usuario en BD y compara hashes con `bcrypt`.
+4. **Service** genera JWTs firmados con `JWT_SECRET`.
+5. **Controller** responde con `{ user, accessToken, refreshToken }`.
 
 ## 4. Seguridad
 
 - **Hashing**: Las contraseñas nunca se guardan en texto plano.
-- **Validación de Entradas**: Usamos `express-validator` para asegurar emails válidos y contraseñas fuertes.
+- **Validación de Entradas**: Usamos **Zod** para asegurar que los datos cumplan estrictamente con el esquema esperado ("Fail-Fast").
 - **Protección de Rutas**: Solo usuarios con token válido pueden acceder a recursos privados.

@@ -40,34 +40,41 @@ Este documento detalla la hoja de ruta para modernizar la validación del backen
 
 _Objetivo: Proteger lógica compleja externa con Mocks._
 
-1.  **Test API RAWG** (`tests/rawg.service.test.ts`):
+1.  **Test API RAWG** (`tests/rawg.service.test.ts`): ✅ Completado
     - Mockear `axios`. Validar transformación de datos.
-2.  **Test API Steam** (`tests/steam.service.test.ts`):
+2.  **Test API Steam** (`tests/steam.service.test.ts`): ✅ Completado
     - Mockear timeouts y errores de red.
-3.  **Verificación**: `npm test` (All Green).
+3.  **Verificación**: `npm test` (All Green). ✅ Completado
 
 ### Fase 2: Infraestructura Zod (Riesgo Bajo)
 
 _Objetivo: Preparar el terreno sin romper nada._
 
-1.  **Instalación**: `npm install zod` en `backend`.
-2.  **Middleware**: Crear `src/middleware/zod.middleware.ts`.
+1.  **Instalación**: `npm install zod` en `backend`. ✅ Completado
+2.  **Middleware**: Crear `src/middleware/zod.middleware.ts`. ✅ Completado
     - Adaptador que captura `ZodError` y devuelve formato estándar.
-3.  **Schemas**: Crear `src/validators/zod/auth.schema.ts`.
+3.  **Schemas**: Crear `src/validators/zod/auth.schema.ts`. ✅ Completado
     - **Acción Manual**: Copiar contenido exacto de `frontend/src/features/auth/schemas.ts`.
 
-### Fase 3: Migración Piloto (Riesgo Medio)
+### Fase 3: Migración Completa (Estrategia Actual)
 
-_Objetivo: Validar en producción controlada._
+_Objetivo: Modernizar todo el backend manteniendo la estructura actual._
 
-1.  **Refactor**: En `auth.routes.ts`, cambiar `/register` para usar `validateZod`.
-2.  **Validación**: Correr `tests/auth.routes.test.ts`. Debe pasar sin ser modificado.
+1.  **Estrategia Manual**: Copiar schemas de `frontend/src/features/*/schemas.ts` a `backend/src/validators/zod/`.
+2.  **Ejecución**:
+    - Migracion `auth` (Login): ✅ Completado
+    - Migracion `games` (Query params): ✅ Completado
+    - Migracion `orders` (Checkout validation): ✅ Completado
+    - Migracion `collection` (Library): ✅ Completado
+    - Cleanup (`express-validator` removed): ✅ Completado
 
 ---
 
 ## 4. Visión Futura (Largo Plazo) 🔮
 
-Cuando el proyecto escale, esta preparación permitirá una transición fluida al **Monorepo**:
+## 4. Visión Futura (Monorepo Transition) 🔮
+
+Cuando el proyecto escale (y el copy-paste sea insostenible), esta preparación permitirá una transición fluida al **Monorepo**:
 
 1.  **Beneficios**:
     - Eliminación de la "copia manual" de schemas.

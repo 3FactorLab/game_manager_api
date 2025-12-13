@@ -20,6 +20,10 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
 
 ## 3. Validacion y pruebas
 
+- **Validación**: Se utiliza **Zod** como estándar único de validación.
+  - Los schemas deben estar en `src/validators/zod/`.
+  - Usar `validateZod` middleware.
+  - Mantener paridad con los schemas del frontend cuando aplique.
 - Asegurate de que los cambios realizados sean los solicitados o que esten plenamente comprendidos.
 - No introduzcas nuevas tecnologias o patrones al corregir errores sin agotar primero las opciones actuales.
 - Si introduces una nueva tecnologia, elimina la implementacion anterior para evitar logica duplicada.
@@ -56,6 +60,14 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
 - Tras cada iteracion que cambia el comportamiento de la aplicacion deja constancia actualizando `ai/changelog.md`.
 - Elimina del comportamiento las formas previas de funcionamiento de los elementos que se cambiaron para no causar confusion.
 
-## 8. rESPETAR COHERENCIA DE TEMA E IDIOMAS
+## 8. RESPETAR COHERENCIA DE TEMA E IDIOMAS
 
 - En cada cambio que te solicite quiero que lo hagas teniendo en cuenta el modo blanco y negro para que tenga coherencia visual con el restop de componentes y de igualmodo si existen varios idiomans soportados por la aplicacion deberás hacerlo.
+
+## 9. Arquitectura y Patrones
+
+- **Arquitectura en Capas**: Respetar estrictamente la separación:
+  - **Controllers**: Solo manejan HTTP (req/res, status codes). No contienen lógica de negocio.
+  - **Services**: Contienen toda la lógica de negocio. Son agnósticos de HTTP (no reciben `req` ni `res`).
+- **Manejo de Errores Async**: Todas las funciones asíncronas en controladores deben usar `asyncHandler` (`src/utils`). No usar `try/catch` manual en controladores.
+- **DTOs**: Usar interfaces DTO (`src/dtos`) para tipar datos de entrada/salida. Evitar `any` en controladores y servicios.

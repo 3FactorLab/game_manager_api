@@ -20,15 +20,15 @@ import {
 } from "../controllers/user.controller";
 import checkAuth from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/role.middleware";
-import {
-  registerValidator,
-  loginValidator,
-  updateValidator,
-} from "../validators/auth.validator";
+
 import upload from "../middleware/upload.middleware";
 
 import { validateZod } from "../middleware/zod.middleware";
-import { registerSchema } from "../validators/zod/auth.schema";
+import {
+  registerSchema,
+  loginSchema,
+  updateUserSchema,
+} from "../validators/zod/auth.schema";
 
 const router = express.Router();
 
@@ -209,7 +209,7 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/login", loginValidator, login);
+router.post("/login", validateZod(loginSchema), login);
 // Update Route (Protected with checkAuth)
 /**
  * @swagger
@@ -252,7 +252,7 @@ router.put(
   "/update",
   checkAuth,
   upload.single("image"),
-  updateValidator,
+  validateZod(updateUserSchema),
   updateUser
 );
 // Protected Route

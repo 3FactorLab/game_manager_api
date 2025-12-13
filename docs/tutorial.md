@@ -357,34 +357,73 @@ El proyecto ha sido auditado:
 3. **Actualización**: Si cambias código, actualiza los comentarios.
 4. **Destino**: Siempre indica dónde se usa un export.
 
-## 📂 10. El Jefe (`src/server.ts`)
+## 📂 10. El Motor (`src/app.ts` vs `src/server.ts`)
 
-El archivo principal.
+Separamos la **definición** de la **ejecución**.
 
-1. Inicia Express.
-2. Conecta DB.
-3. Configura CORS y JSON.
-4. Define las rutas base (`/api/users`, `/api/games`, `/api/payments`).
-5. Arranca el servidor (`app.listen`) usando `logger.info` para confirmar que todo está listo.
+### `src/app.ts` (La Fábrica)
+
+- **Qué hace**: Configura la aplicación Express.
+- **Detalle**:
+  - Monta los middlewares globales (Helmet, CORS, JSON).
+  - Monta las rutas (`/api/...`).
+  - Configura el manejador global de errores.
+  - **No** arranca el servidor (no hace `listen`). Esto permite importarla en los tests sin ocupar puertos.
+
+### `src/server.ts` (El Ejecutor)
+
+- **Qué hace**: Arranca todo.
+- **Pasos**:
+  1.  Importa `app`.
+  2.  Conecta a la Base de Datos (`connectDB`).
+  3.  Inicia tarear programadas (Cron Jobs).
+  4.  Llama a `app.listen(PORT)`.
 
 ---
 
-## 🐳 11. Docker (`Dockerfile` & `docker-compose.yml`)
+## 🤖 11. Scripts ('src/scripts/')
 
-La infraestructura como código.
+Herramientas de automatización para mantenimiento y carga de datos.
 
-### `Dockerfile`
+- **`import-pc-games.ts`**: El "Importador". Obtiene juegos de RAWG y precios de Steam, y los guarda en MongoDB y `data/games.json`.
+- **`seed.ts`**: El "Restaurador". Lee `data/games.json` y repobla la base de datos limpia. Ideal para resets.
+- **`setupTestAdmin.ts`**: Crea un usuario admin para pruebas.
+- **`fix-prices.ts`**: Script de utilidad para corregir discrepancias de precios.
 
-- **Qué hace**: Empaqueta la aplicación en una imagen de Linux Alpine.
-- **Pasos**: Copia el código, instala dependencias, compila TypeScript y deja lista la app para producción.
+---
 
-### `docker-compose.yml`
+## 🚀 12. Despliegue (Deployment Real)
 
-- **Qué hace**: Orquesta los contenedores.
-- **Servicios**:
-  - `backend`: Nuestra app Node.js (Puerto 3500).
-  - `mongo`: La base de datos (Puerto 27017).
-  - `mongo-express`: Interfaz web para ver la DB (Puerto 8081).
+Cómo llevar tu código del ordenador a un servidor de verdad (Production).
+
+### Pasos para Desplegar
+
+1.  **Construir (Build)**:
+    TypeScript no corre directamente en producción. Debemos compilarlo a JavaScript.
+
+    ```bash
+    npm run build
+    ```
+
+    Esto crea la carpeta `dist/`.
+
+2.  **Configurar Entorno**:
+    En tu servidor, crea un archivo `.env` con las variables de producción (DB real, Claves secretas de verdad).
+
+3.  **Ejecutar**:
+    Usamos el script de inicio que apunta al código compilado.
+    ```bash
+    npm run start
+    ```
+    _(Ejecuta `node dist/server.js`)_
+
+### Recomendación Pro: PM2
+
+En producción, no lanzamos el comando y cruzamos los dedos. Usamos un "Gestor de Procesos" como **PM2**.
+
+- Mantiene la app viva si crashea.
+- Se reinicia si reinicias el servidor.
+- `pm2 start dist/server.js --name "game-manager-api"`
 
 ---
 
@@ -393,12 +432,11 @@ La infraestructura como código.
 Nuestra red de seguridad.
 
 - **`setup.ts`**: Configuración global de tests. Conecta y desconecta la BD automáticamente antes/después de todos los tests.
-- **`integration/full-flow.test.ts`**: El test más importante. Simula un usuario real haciendo de todo.
-- **`public.games.test.ts`**: Verifica que el catálogo sea visible sin login.
+- **`integration/full-flow.test.ts`**: El "Jefe Final". Simula un flujo completo: Login -> Crear Juego -> Buscar -> Borrar.
+- **`auth.refresh.test.ts`**: Valida la seguridad de la rotación de tokens y detección de robos.
+- **`rawg.service.test.ts` y `steam.service.test.ts`**: Verifican que la conexión con APIs externas funciona.
 - **`order.integration.test.ts`**: Prueba el flujo completo de compra (Mock) y el historial de pedidos.
-- **`auth.service.test.ts`**: Prueba unitaria del registro.
-- **`catalog.test.ts`**: Prueba específica del catálogo.
-- **`payment.service.test.ts`**: Prueba la lógica de pagos y órdenes.
+- **`validation.test.ts`**: Asegura que los DTOs rechacen datos basura (Zod).
 
 ---
 

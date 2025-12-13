@@ -28,7 +28,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 
 ### 🔐 Seguridad de Grado Empresarial
 
-- **Start-of-the-Art Security**: Implementación de **Helmet** (Headers HTTP seguros) y **Rate Limiting** (protección DDOS) global.
+- **State-of-the-Art Security**: Implementación de **Helmet** (Headers HTTP seguros) y **Rate Limiting** (protección DDOS) global.
 - **JWT Access Tokens**: Corta duración (15 min) para minimizar riesgos.
 - **Refresh Tokens con Rotación**: Detección automática de robo de tokens y revocación en cascada.
 - **RBAC (Role-Based Access Control)**: Middleware estricto para diferenciar entre `Admin` y `User`.
@@ -38,7 +38,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 
 - **TypeScript**: Código tipado, seguro y mantenible.
 - **Arquitectura por Capas**: Separación clara entre Rutas, Controladores, Servicios y Modelos.
-- **Validación Estricta**: DTOs y `express-validator` aseguran que nunca entren datos corruptos.
+- **Validación Estricta**: **Zod** asegura que nunca entren datos corruptos ("Fail-Fast").
 - **Manejo de Errores Centralizado**: Middleware global para capturar y formatear excepciones.
 - **Fail-Fast**: Validación estricta de variables de entorno al arranque.
 - **Logging Profesional**: Logs estructurados con Winston para máxima observabilidad.
@@ -53,6 +53,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 - **Integraciones Externas**: Sincronización automática con **RAWG** (Metadata) y **Steam** (Precios).
 - **Cron Jobs**: Actualización automática de precios de Steam cada madrugada.
 - **Gestión Masiva**: Endpoint de administración para listar y gestionar todos los usuarios del sistema.
+- **Automatización**: Suite de scripts en `src/scripts/` para importación de datos y mantenimiento.
 
 ---
 
@@ -64,7 +65,7 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 - **Base de Datos**: MongoDB (Atlas o Local) + Mongoose ODM
 - **Testing**: Jest + Supertest
 - **Documentación**: Swagger (OpenAPI 3.0)
-- **Utilidades**: `bcrypt`, `multer`, `dotenv`, `cors`, `helmet`, `node-cron`, `nodemailer`
+- **Utilidades**: `bcrypt`, `multer`, `dotenv`, `cors`, `helmet`, `node-cron`, `nodemailer`, `zod`
 
 ---
 
@@ -118,8 +119,9 @@ src/
 ├── models/         # Esquemas de Base de Datos (Mongoose)
 ├── routes/         # Definición de Endpoints
 ├── services/       # Lógica de Negocio Pura (incl. Cron y Pagos)
+├── scripts/        # Tareas de automatización (Importación, Seed)
 ├── utils/          # Helpers (Logger, Password hashing)
-├── validators/     # Reglas de validación (express-validator)
+├── validators/     # Reglas de validación (Zod)
 └── server.ts       # Punto de entrada de la aplicación
 ```
 

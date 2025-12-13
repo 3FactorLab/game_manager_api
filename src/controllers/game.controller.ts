@@ -47,7 +47,7 @@ export const search = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { query, page, limit, genre, platform, sortBy, order } = req.query;
 
-    // Validation is handled by express-validator middleware
+    // Validation is handled by Zod middleware
     const pageNum = page ? parseInt(page as string) : 1;
     const limitNum = limit ? parseInt(limit as string) : 10;
 

@@ -10,6 +10,7 @@ import { z } from "zod";
 /**
  * Login form validation schema
  * Validates email format and password minimum length
+ * Destination: Used in user.routes.ts for login validation
  */
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -19,6 +20,7 @@ export const loginSchema = z.object({
 /**
  * Registration form validation schema
  * Validates username, email, password, and password confirmation match
+ * Destination: Used in user.routes.ts for registration validation
  */
 export const registerSchema = z
   .object({
@@ -47,7 +49,25 @@ export const changePasswordSchema = z
     path: ["confirmPassword"], // Error shown on confirmPassword field
   });
 
+/**
+ * Update User form validation schema
+ * Validates optional profile updates
+ * Destination: Used in user.routes.ts for profile update
+ */
+export const updateUserSchema = z.object({
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .optional(),
+  email: z.string().email("Invalid email address").optional(),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .optional(),
+});
+
 // TypeScript types inferred from Zod schemas
 export type LoginSchemaType = z.infer<typeof loginSchema>;
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
 export type ChangePasswordSchemaType = z.infer<typeof changePasswordSchema>;
+export type UpdateUserSchemaType = z.infer<typeof updateUserSchema>;

@@ -34,6 +34,11 @@ El proyecto sigue una arquitectura **Layered (por capas)** clásica, diseñada p
 - **Responsabilidad**: Ejecutar código antes de llegar al controlador.
 - **Ejemplos**: `auth.middleware.ts` (verifica tokens), `error.middleware.ts` (manejo centralizado de errores).
 
+### 📂 `scripts/` (Automatización)
+
+- **Responsabilidad**: Tareas de mantenimiento, migración y carga de datos fuera del ciclo de vida HTTP.
+- **Ejemplos**: `import-pc-games.ts`, `seed.ts`.
+
 ## 3. Patrones Utilizados
 
 ### 🏭 Service Pattern
@@ -59,4 +64,4 @@ Los servicios `rawg.service.ts` y `steam.service.ts` actúan como adaptadores qu
 - **Framework**: Express.js
 - **Base de Datos**: MongoDB (con Mongoose)
 - **Testing**: Jest + Supertest
-- **Validación**: express-validator + Zod (opcional)
+- **Validación**: **Zod** (Schema Validation)

@@ -49,12 +49,13 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-import { createCheckoutSessionValidator } from "../validators/payment.validator";
+import { createCheckoutSessionSchema } from "../validators/zod/order.schema";
+import { validateZod } from "../middleware/zod.middleware";
 
 router.post(
   "/checkout",
   checkAuth,
-  createCheckoutSessionValidator,
+  validateZod(createCheckoutSessionSchema),
   paymentController.createCheckoutSession
 );
 
@@ -114,7 +115,7 @@ router.post(
 router.post(
   "/checkout/simulate",
   checkAuth,
-  createCheckoutSessionValidator, // Same validation (gameIds required)
+  validateZod(createCheckoutSessionSchema), // Same validation (gameIds required)
   paymentController.simulatePurchase
 );
 

@@ -16,12 +16,13 @@ import {
 import checkAuth from "../middleware/auth.middleware";
 import { isAdmin } from "../middleware/role.middleware";
 import {
-  validateCreateGame,
-  updateCatalogGameValidator,
-  validateSearchExternal,
-  validateCreateFromRAWG,
-  searchGameValidator,
-} from "../validators/game.validator";
+  createGameSchema,
+  updateGameSchema,
+  searchGameSchema,
+  searchExternalSchema,
+  createFromRAWGSchema,
+} from "../validators/zod/game.schema";
+import { validateZod } from "../middleware/zod.middleware";
 import upload from "../middleware/upload.middleware";
 
 const router = express.Router();
@@ -88,7 +89,7 @@ router.use(checkAuth);
  *     security:
  *       - bearerAuth: []
  */
-router.get("/", searchGameValidator, search);
+router.get("/", validateZod(searchGameSchema, "query"), search);
 
 /**
  * @swagger
@@ -154,7 +155,7 @@ router.post(
   checkAuth,
   isAdmin,
   upload.single("image"),
-  validateCreateGame,
+  validateZod(createGameSchema),
   create
 );
 
@@ -183,7 +184,12 @@ router.post(
  *     security:
  *       - bearerAuth: []
  */
-router.get("/search", checkAuth, validateSearchExternal, searchExternal);
+router.get(
+  "/search",
+  checkAuth,
+  validateZod(searchExternalSchema, "query"),
+  searchExternal
+);
 
 /**
  * @swagger
@@ -304,7 +310,7 @@ router.put(
   isAdmin,
   upload.single("image"),
   upload.single("image"),
-  updateCatalogGameValidator,
+  validateZod(updateGameSchema),
   updateGame
 );
 
@@ -353,7 +359,7 @@ router.post(
   "/from-rawg",
   checkAuth,
   isAdmin,
-  validateCreateFromRAWG,
+  validateZod(createFromRAWGSchema),
   createFromRAWG
 );
 

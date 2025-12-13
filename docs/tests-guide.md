@@ -52,18 +52,36 @@ Simulan un flujo real de usuario de principio a fin.
   - Lo busca, lo edita y lo borra
   - **Si este test pasa, tu backend funciona**
 
-### 🌐 Tests Públicos
+### 🌐 Tests de Integración (APIs Externas)
 
-- **`public.games.test.ts`**: Verifica que cualquier usuario (sin login) puede ver el catálogo y el detalle de los juegos.
+Verifican que nuestros adaptadores para RAWG y Steam funcionen correctamente.
+
+- **`rawg.service.test.ts`**:
+  - Verifica la conexión con la API de RAWG.
+  - Valida que obtenemos título, descripción y screenshots correctamente.
+- **`steam.service.test.ts`**:
+  - Verifica que el scraping de precios funciona.
+  - Valida la lógica de extracción de AppIDs desde URLs.
+- **`public.games.test.ts`**:
+  - Verifica que los endpoints públicos (`/api/public/games`) devuelven datos limpios (sin campos sensibles).
 
 ### 🛡️ Tests de Autenticación
 
 ### 🛡️ Tests de Autenticación y Usuarios
 
-- **`auth.routes.test.ts`**: Prueba los endpoints `/register` y `/login`
-- **`auth.service.test.ts`**: Prueba la lógica interna (hashing de contraseñas) sin llamar a la API
-- **`user.delete.test.ts`**: **Crítico**. Verifica que al borrar un usuario, se borran sus RefreshTokens, UserGames y Órdenes.
-- **`user.management.test.ts`**: Verifica el endpoint de administración `GET /api/users`.
+### 🛡️ Tests de Seguridad (Defense in Depth)
+
+Estos tests validan las capas de protección más sensibles.
+
+- **`auth.refresh.test.ts` (CRÍTICO)**:
+  - Simula el **Robo de Token**.
+  - Verifica que si se reúsa un Refresh Token viejo, el sistema bloquea al usuario (Reuse Detection).
+- **`validation.test.ts`**:
+  - Prueba los DTOs de Zod. Envía payloads vacíos, con tipos incorrectos o datos maliciosos para confirmar que la API los rechaza (400 Bad Request).
+- **`role.test.ts`**:
+  - Verifica que un usuario normal NO puede crear juegos ni borrar usuarios.
+- **`user.delete.test.ts`**:
+  - Valida la integridad referencial (Cascade Delete): Borrar usuario -> Borra Tokens y Colección.
 
 ### 🎮 Tests de Juegos (Catálogo)
 
@@ -71,10 +89,33 @@ Simulan un flujo real de usuario de principio a fin.
 - **`game.delete.test.ts`**: Verifica que solo los Admins pueden borrar y que se aplica **Cascade Delete** (limpiando UserGames).
 - **`game.update.test.ts`**: Verifica la edición de juegos
 
+### 📚 Tests de Colección y Wishlist
+
+Verifican la lógica de propiedad y deseo del usuario.
+
+- **`collection.service.test.ts`**:
+  - Valida añadir juegos a la biblioteca (`isOwned: true`).
+  - Prueba la actualización de horas de juego y estado (Playing, Completed).
+- **`wishlist.test.ts`**:
+  - Valida añadir/quitar juegos de la lista de deseados.
+  - Verifica que no se pueden añadir duplicados.
+
 ### 💳 Tests de Pagos
 
 - **`payment.service.test.ts`**: Verifica la creación de órdenes y el acceso a la librería.
 - **`order.integration.test.ts`**: Verifica el endpoint de Simulación de Compra (`/checkout/simulate`) y el historial de pedidos (`/my-orders`).
+
+### 📁 Tests de Archivos (Media)
+
+Verifican la subida de imágenes y avatares (Multer).
+
+- **`user.avatar.test.ts`**:
+  - Prueba la subida de avatar de perfil.
+  - Valida restricciones: solo imágenes, máximo 2MB.
+  - Confirma que se borra el avatar anterior al subir uno nuevo (limpieza).
+- **`game.image.test.ts`**:
+  - Prueba la subida de la portada del juego (`cover`).
+  - Verifica que la URL se guarda correctamente en el modelo `Game`.
 
 ---
 

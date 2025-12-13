@@ -12,9 +12,10 @@ import {
 } from "../controllers/collection.controller";
 import checkAuth from "../middleware/auth.middleware";
 import {
-  addToCollectionValidator,
-  updateCollectionItemValidator,
-} from "../validators/collection.validator";
+  addToCollectionSchema,
+  updateCollectionItemSchema,
+} from "../validators/zod/collection.schema";
+import { validateZod } from "../middleware/zod.middleware";
 
 const router = express.Router();
 
@@ -129,7 +130,7 @@ router.get("/", getCollection);
  *     security:
  *       - bearerAuth: []
  */
-router.post("/", addToCollectionValidator, addToCollection);
+router.post("/", validateZod(addToCollectionSchema), addToCollection);
 
 /**
  * @swagger
@@ -188,7 +189,7 @@ router.post("/", addToCollectionValidator, addToCollection);
  *     security:
  *       - bearerAuth: []
  */
-router.put("/:id", updateCollectionItemValidator, updateItem);
+router.put("/:id", validateZod(updateCollectionItemSchema), updateItem);
 
 /**
  * @swagger

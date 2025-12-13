@@ -33,11 +33,11 @@ En este proyecto, hemos adoptado una estrategia de **"Confianza Total"**. No bus
 
 - **La Joya de la Corona**: `tests/integration/full-flow.test.ts`
 - Simula una sesión de usuario completa:
-  1.  Usuario se registra.
-  2.  Hace Login y obtiene token.
-  3.  Busca un juego.
-  4.  Añade el juego a su biblioteca.
-  5.  Borra su cuenta.
+  1. Usuario se registra.
+  2. Hace Login y obtiene token.
+  3. Busca un juego.
+  4. Añade el juego a su biblioteca.
+  5. Borra su cuenta.
 - Este test garantiza que el sistema funciona como un todo coherente.
 
 ## 4. Estrategias Clave
@@ -69,16 +69,18 @@ Contamos con una suite robusta de **85 tests** que garantizan la estabilidad del
 - **Tests de Lógica (Services)**: Validan reglas de negocio complejas y cálculos.
 - **Tests de Seguridad**: Roles, validación de tokens y manejo de errores.
 
-### 🏆 Hitos de Calidad:
+### 🏆 Hitos de Calidad
 
-1.  **Global Setup**: Implementación de `tests/setup.ts` para gestión eficiente de conexiones MongoDB.
-2.  **100% Pass Rate**: Todos los tests de Auth, Catálogo, Pagos y Usuarios pasan en CI/CD local.
-3.  **Cobertura de Casos Borde**: Manejo de 404s, 401s, y errores de validación.
+1. **Global Setup**: Implementación de `tests/setup.ts` para gestión eficiente de conexiones MongoDB.
+2. **100% Pass Rate**: Todos los tests de Auth, Catálogo, Pagos y Usuarios pasan en CI/CD local.
+3. **Cobertura de Casos Borde**: Manejo de 404s, 401s, y errores de validación.
 
-### Desglose de Tests Principales:
+### Desglose de Tests Principales
 
 - `auth.*`: Login, Registro, Refresh Token.
 - `catalog.*` / `game.*`: CRUD de juegos, Búsqueda pública.
 - `order.integration`: Flujo completo de compra y pagos simulados.
 - `collection.service`: Lógica de biblioteca de usuario.
-- `validation`: Middleware de validación de datos.
+- `validation.test.ts`: Validación estricta de DTOs con Zod.
+- `auth.refresh.test.ts`: Seguridad de rotación de tokens.
+- `user.delete.test.ts`: Integridad referencial (Cascade Delete).
