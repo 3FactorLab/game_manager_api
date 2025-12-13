@@ -1,9 +1,11 @@
 /**
  * @file payment.dto.ts
- * @description Data Transfer Objects for payment operations.
+ * @description Data Transfer Objects for Payment operations.
  */
 
-// Destination: Used in PaymentController and PaymentService for type safety
+/**
+ * Interface for creating a checkout session.
+ */
 export interface CreateCheckoutSessionDto {
   gameIds: string[];
 }

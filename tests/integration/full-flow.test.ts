@@ -149,7 +149,7 @@ describe("Integration Test: Full User Journey", () => {
       // Or we can just buy it, and it should update 'isOwned' to true
 
       const res = await request(app)
-        .post("/api/payments/checkout")
+        .post("/api/payments/checkout/simulate")
         .set("Authorization", `Bearer ${userToken}`)
         .send({
           gameIds: [gameId],

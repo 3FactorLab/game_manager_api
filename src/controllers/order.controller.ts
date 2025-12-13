@@ -1,30 +1,25 @@
 /**
  * @file order.controller.ts
- * @description Controller for handling order-related requests.
+ * @description Controller for order-related operations.
+ * Delegates logic to OrderService.
  */
-import { Request, Response, NextFunction } from "express";
-import Order from "../models/order.model";
+import { Request, Response } from "express";
+import { asyncHandler } from "../utils/asyncHandler";
+import { getUserOrders } from "../services/order.service";
 import { AppError } from "../utils/AppError";
 
-// Get My Orders
-// Destination: Used in user.routes.ts (GET /orders/my-orders or similar).
-export const getMyOrders = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const userId = req.userData?.id;
-    if (!userId) throw new AppError("Unauthorized", 401);
+/**
+ * Get logged-in user's orders
+ * @route GET /api/orders/my-orders
+ */
+export const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.userData?.id;
 
-    // Fetch orders for the user, sorted by newest first
-    const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
-    // .populate("items.game"); // Optional: if we want game details not in snapshot
-    // Since we store snapshot in items, we might not need populate unless we want current images?
-    // Our items array has title, price, etc.
-
-    res.status(200).json(orders);
-  } catch (error) {
-    next(error);
+  if (!userId) {
+    throw new AppError("Authentication required", 401);
   }
-};
+
+  const orders = await getUserOrders(userId);
+
+  res.status(200).json(orders);
+});
