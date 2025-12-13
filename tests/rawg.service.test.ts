@@ -1,3 +1,9 @@
+/**
+ * @file rawg.service.test.ts
+ * @description Unit tests for RAWG Service.
+ * Mocks axios and node-cache to ensure no external requests are made.
+ * Destination: Validation of src/services/rawg.service.ts
+ */
 import axios from "axios";
 import { AppError } from "../src/utils/AppError";
 

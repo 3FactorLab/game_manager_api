@@ -110,3 +110,24 @@
 ### Fixed
 
 - **Compliance**: Added `@file` and `@description` headers to new test files to match strict project standards.
+
+## 2025-12-13
+
+### Added
+
+- **Tests**: `tests/rawg.service.test.ts` and `tests/steam.service.test.ts` providing 100% mocked unit test coverage for external services.
+- **Safety**: Validated "Zero DB Impact" policy for unit tests.
+
+### Infrastructure
+
+- **Validation**: Installed `zod` and created `zod.middleware.ts` adapter to bridge Express and Zod Validation.
+- **Schemas**: Ported `auth.schema.ts` from Frontend to Backend for consistency.
+
+### Migrated
+
+- **Endpoint**: `/api/users/register` now uses Zod Validation.
+- **Test Contract**: Updated `auth.routes.test.ts` to strictly require `confirmPassword`, enforcing frontend-backend schema parity.
+
+### Verified
+
+- **System Stability**: Full regression test suite (20 suites, 87 tests) passed successfully after updating multiple integration tests to comply with strict Zod schemas.

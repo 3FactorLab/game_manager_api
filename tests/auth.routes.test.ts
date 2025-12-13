@@ -26,6 +26,7 @@ describe("Auth Routes Integration Tests", () => {
     username: "integration_test_user",
     email: "integration_test@example.com",
     password: "password123",
+    confirmPassword: "password123",
   };
 
   let token = "";

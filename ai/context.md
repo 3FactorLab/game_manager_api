@@ -609,3 +609,52 @@
 - **Verification**: `npm test` verified 20/20 Suites passed (85 tests).
 - **Status**: Backend Tests modernized, coverage increased, and redundancy reduced.
 - **Files**: `tests/setup.ts`, `tests/public.games.test.ts`, `tests/order.integration.test.ts`, `jest.config.cjs`
+
+## 2025-12-13T01:05:00+01:00
+
+- **Actions**: Implementation of Phase 1: Unit Testing (Zod Migration Plan).
+- **Implementation**:
+  - `tests/rawg.service.test.ts`: Created unit tests using `jest.mock("axios")` and `jest.mock("node-cache")`.
+  - `tests/steam.service.test.ts`: Created unit tests using strict mocking to avoid external calls.
+- **Compliance**:
+  - Added strict file headers (`@file`, `@description`).
+  - Ensured NO DB connection in unit tests (Safety Protocol).
+- **Verification**: `npm test` passed 20/20 Suites (87 tests).
+- **Status**: Phase 1 Completed. Services secured.
+- **Files**: `tests/rawg.service.test.ts`, `tests/steam.service.test.ts`
+
+## 2025-12-13T01:07:00+01:00
+
+- **Actions**: Implementation of Phase 2: Zod Infrastructure.
+- **Implementation**:
+  - `npm install zod`.
+  - `src/middleware/zod.middleware.ts`: Adapter middleware created.
+  - `src/validators/zod/auth.schema.ts`: Manual sync of auth schemas from frontend.
+- **Compliance**:
+  - Added "SYNC MANUAL" warning note to schema file.
+- **Status**: Backend ready for Zod validation.
+- **Files**: `src/middleware/zod.middleware.ts`, `src/validators/zod/auth.schema.ts`
+
+## 2025-12-13T01:10:00+01:00
+
+- **Actions**: Implementation of Phase 3: Pilot Migration (/register).
+- **Implementation**:
+  - `src/routes/user.routes.ts`: Replaced `registerValidator` with `validateZod(registerSchema)`.
+  - `tests/auth.routes.test.ts`: Updated test payload to include `confirmPassword` (required by strict Zod schema).
+- **Verification**: `npm test tests/auth.routes.test.ts` passed.
+- **Status**: Endpoint migrated to Zod successfully.
+- **Files**: `src/routes/user.routes.ts`, `tests/auth.routes.test.ts`
+
+## 2025-12-13T01:25:00+01:00
+
+- **Verification Phase**: Full System Regression Test.
+- **Issue**: `npm test` failed initially due to Zod's strict `confirmPassword` requirement not being met in integration tests.
+- **Fixes**:
+  - Updated `tests/catalog.test.ts`
+  - Updated `tests/order.integration.test.ts`
+  - Updated `tests/role.test.ts`
+  - Updated `tests/integration/full-flow.test.ts`
+  - Updated `tests/auth.refresh.test.ts`
+  - Updated `tests/validation.test.ts` (error message alignment)
+- **Result**: `npm test` PASSED (20/20 suites, 87/87 tests).
+- **Status**: **VERIFIED**. Minimal viable migration of `/register` is complete and stable.

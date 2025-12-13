@@ -47,6 +47,20 @@ const router = express.Router();
  *         schema:
  *           type: string
  *         description: Filter by platform
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [price, releaseDate, title, score]
+ *           default: releaseDate
+ *         description: Sort field
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
  *     responses:
  *       200:
  *         description: List of games

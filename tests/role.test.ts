@@ -41,7 +41,9 @@ describe("Role Integration Tests", () => {
   let userToken: string;
 
   test("Should register users with default role 'user'", async () => {
-    const res = await request(app).post("/api/users/register").send(normalUser);
+    const res = await request(app)
+      .post("/api/users/register")
+      .send({ ...normalUser, confirmPassword: normalUser.password });
     expect(res.statusCode).toBe(201);
 
     const savedUser = await User.findOne({ email: normalUser.email });
@@ -50,7 +52,9 @@ describe("Role Integration Tests", () => {
 
   test("Should not allow registering as admin via public API", async () => {
     const fakeAdmin = { ...adminUser, role: "admin" };
-    const res = await request(app).post("/api/users/register").send(fakeAdmin);
+    const res = await request(app)
+      .post("/api/users/register")
+      .send({ ...fakeAdmin, confirmPassword: fakeAdmin.password });
     expect(res.statusCode).toBe(201);
 
     const savedUser = await User.findOne({ email: adminUser.email });

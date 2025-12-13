@@ -26,10 +26,11 @@ describe("Request Validation (Non-Destructive)", () => {
         username: "validuser",
         email: "invalid-email",
         password: "password123",
+        confirmPassword: "password123",
       });
       expect(res.status).toBe(400);
       expect(res.body.errors).toBeDefined();
-      expect(res.body.errors[0].msg).toBe("Invalid email format");
+      expect(res.body.errors[0].msg).toBe("Invalid email address");
     });
 
     it("should reject registration with short password", async () => {
@@ -37,10 +38,11 @@ describe("Request Validation (Non-Destructive)", () => {
         username: "validuser",
         email: "test@example.com",
         password: "123",
+        confirmPassword: "123",
       });
       expect(res.status).toBe(400);
       expect(res.body.errors[0].msg).toBe(
-        "Password must be at least 6 characters long"
+        "Password must be at least 6 characters"
       );
     });
   });
@@ -82,6 +84,7 @@ describe("Request Validation (Non-Destructive)", () => {
           username: `admin_val_${uniqueSuffix}`,
           email,
           password,
+          confirmPassword: password,
         });
 
       // 2. Promote to Admin directly in DB

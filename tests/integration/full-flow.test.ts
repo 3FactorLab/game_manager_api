@@ -70,6 +70,7 @@ describe("Integration Test: Full User Journey", () => {
           username: `user_${uniqueSuffix}`,
           email,
           password: "password123",
+          confirmPassword: "password123",
         });
 
       expect(res.status).toBe(201);

@@ -25,7 +25,9 @@ describe("Order & Payment Integration Tests", () => {
     await Game.deleteMany({ title: { $regex: /Order Test Game/ } });
 
     // Register & Login
-    await request(app).post("/api/users/register").send(testUser);
+    await request(app)
+      .post("/api/users/register")
+      .send({ ...testUser, confirmPassword: testUser.password });
     const loginRes = await request(app).post("/api/users/login").send({
       email: testUser.email,
       password: testUser.password,

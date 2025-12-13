@@ -1,3 +1,9 @@
+/**
+ * @file steam.service.test.ts
+ * @description Unit tests for Steam Service.
+ * Used mocks for axios and node-cache to simulate Steam API responses without network calls.
+ * Destination: Validation of src/services/steam.service.ts
+ */
 import axios from "axios";
 import {
   searchSteamGames,

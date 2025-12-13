@@ -35,11 +35,12 @@ describe("Refresh Token Flow", () => {
     // Register
     await request(app)
       .post("/api/users/register")
-      .send({
-        username: `refresh_user_${uniqueSuffix}`,
-        email: userEmail,
-        password: "password123",
-      });
+      .field("username", `refresh_user_${uniqueSuffix}`)
+      .field("email", userEmail)
+      .field("password", "password123")
+      .field("confirmPassword", "password123");
+    // The original instruction had a trailing comma here, which is a syntax error.
+    // It has been removed to ensure syntactically correct output.
 
     // Login
     const res = await request(app).post("/api/users/login").send({

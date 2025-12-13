@@ -33,6 +33,7 @@ describe("Catalog & Collection Integration Tests", () => {
       username: "catalogtester",
       email: "catalogtest@example.com",
       password: "password123",
+      confirmPassword: "password123",
     });
 
     // Promote to admin so we can create games

@@ -27,6 +27,9 @@ import {
 } from "../validators/auth.validator";
 import upload from "../middleware/upload.middleware";
 
+import { validateZod } from "../middleware/zod.middleware";
+import { registerSchema } from "../validators/zod/auth.schema";
+
 const router = express.Router();
 
 // ... existing auth routes ...
@@ -51,7 +54,7 @@ const router = express.Router();
  *                 $ref: '#/components/schemas/Game'
  *       401:
  *         description: Unauthorized
- */
+ * */
 router.get("/wishlist", checkAuth, getWishlist);
 
 /**
@@ -152,7 +155,12 @@ router.delete("/wishlist/:gameId", checkAuth, removeFromWishlist);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/register", upload.single("image"), registerValidator, register);
+router.post(
+  "/register",
+  upload.single("image"),
+  validateZod(registerSchema),
+  register
+);
 /**
  * @swagger
  * /api/users/login:
