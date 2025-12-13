@@ -136,7 +136,8 @@ export const getSteamCoverUrl = (appId: number): string => {
 export const extractSteamAppId = (url: string): number | null => {
   try {
     // Steam URL format: https://store.steampowered.com/app/1245620/Elden_Ring/
-    const match = url.match(/\/app\/(\d+)/);
+    // Handle query params ??, trailing slashes, and different positions
+    const match = url.match(/\/app\/(\d+)/) || url.match(/\/app\/(\d+)$/);
     return match ? parseInt(match[1], 10) : null;
   } catch (error) {
     logger.error(`Error extracting Steam App ID from URL: ${error}`);

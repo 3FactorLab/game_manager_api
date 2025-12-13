@@ -117,6 +117,44 @@ export const searchGames = async (query: string, limit = 10) => {
 };
 
 /**
+ * Fetch popular PC games from RAWG
+ * Destination: Used by import-pc-games.ts script.
+ * Params: platforms=4 (PC), ordering=-added (Popularity)
+ */
+export const fetchPopularPCGames = async (page = 1, pageSize = 40) => {
+  const cacheKey = `popular_pc:${page}:${pageSize}`;
+  const cachedData = rawgCache.get(cacheKey);
+
+  if (cachedData) {
+    logger.info(`Serving popular PC games from cache (Page ${page})`);
+    return cachedData as any[];
+  }
+
+  try {
+    const response = await rawgClient.get("/games", {
+      params: {
+        platforms: 4, // PC
+        ordering: "-added", // Most added to collections (Popularity)
+        page: page,
+        page_size: pageSize,
+      },
+    });
+
+    const results = response.data.results.map((game: any) => ({
+      rawgId: game.id,
+      title: game.name,
+      // Minimal data for list, full details fetched later
+    }));
+
+    rawgCache.set(cacheKey, results, 3600); // 1 hour cache
+    return results;
+  } catch (error) {
+    logger.error(`Error fetching popular PC games: ${error}`);
+    throw new AppError("Failed to fetch popular PC games", 500);
+  }
+};
+
+/**
  * Get complete details of a game by RAWG ID
  * Destination: Used by game-aggregator.service.ts and game.controller.ts.
  * Caching: Details cached for 24 hours.
