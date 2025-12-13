@@ -4,11 +4,11 @@
  * Tests registration, login, game management, collection, and payments.
  */
 import request from "supertest";
-import app from "../../src/server";
+import app from "../../server";
 import mongoose from "mongoose";
-import { User, Game, UserGame, Order } from "../../src/models";
-import RefreshToken from "../../src/models/refreshToken.model";
-import { UserRole, GameStatus, OrderStatus } from "../../src/types/enums";
+import { User, Game, UserGame, Order } from "../../models";
+import RefreshToken from "../../models/refreshToken.model";
+import { UserRole, GameStatus, OrderStatus } from "../../types/enums";
 
 describe("Integration Test: Full User Journey", () => {
   let adminId: string;
@@ -42,7 +42,7 @@ describe("Integration Test: Full User Journey", () => {
   describe("1. Authentication Flow", () => {
     it("should register a new ADMIN user", async () => {
       const email = `admin_${uniqueSuffix}@test.com`;
-      const { hashPassword } = require("../../src/utils/password.util");
+      const { hashPassword } = require("../../utils/password.util");
       const hashedPassword = await hashPassword("password123");
 
       const admin = await User.create({

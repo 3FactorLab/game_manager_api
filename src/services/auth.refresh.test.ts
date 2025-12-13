@@ -4,10 +4,10 @@
  * Tests token refresh flow and revocation of old tokens.
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import { User } from "../src/models";
-import RefreshToken from "../src/models/refreshToken.model";
+import { User } from "../models";
+import RefreshToken from "../models/refreshToken.model";
 
 describe("Refresh Token Flow", () => {
   let userId: string;

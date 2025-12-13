@@ -1,9 +1,9 @@
 import request from "supertest";
-import app from "../src/server";
-import { User, UserRole } from "../src/models";
+import app from "../../server";
+import { User, UserRole } from "../../models";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../src/config/env";
+import { JWT_SECRET } from "../../config/env";
 
 const generateTestToken = (user: any) => {
   return jwt.sign(

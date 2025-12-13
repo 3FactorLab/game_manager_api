@@ -4,12 +4,12 @@
  * @target src/controllers/user.controller.ts
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import { User, Game } from "../src/models";
-import { UserRole } from "../src/types/enums";
+import { User, Game } from "../models";
+import { UserRole } from "../types/enums";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../src/config/env";
+import { JWT_SECRET } from "../config/env";
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });

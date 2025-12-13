@@ -1,6 +1,6 @@
 import request from "supertest";
-import app from "../src/server";
-import Game from "../src/models/game.model";
+import app from "../server";
+import Game from "../models/game.model";
 import mongoose from "mongoose";
 
 describe("Public Games API", () => {

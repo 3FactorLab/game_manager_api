@@ -3,9 +3,9 @@
  * @description Integration tests for order creation and payment simulation.
  */
 import request from "supertest";
-import app from "../src/server";
-import { User, Game, Order } from "../src/models";
-import UserGame from "../src/models/userGame.model";
+import app from "../../server";
+import { User, Game, Order } from "../../models";
+import UserGame from "../../models/userGame.model";
 import mongoose from "mongoose";
 
 describe("Order & Payment Integration Tests", () => {

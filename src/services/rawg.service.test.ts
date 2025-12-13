@@ -5,7 +5,7 @@
  * Destination: Validation of src/services/rawg.service.ts
  */
 import axios from "axios";
-import { AppError } from "../src/utils/AppError";
+import { AppError } from "../utils/AppError";
 
 // Mock node-cache to prevent caching issues
 jest.mock("node-cache", () => {
@@ -20,7 +20,7 @@ jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Mock logger
-jest.mock("../src/utils/logger", () => ({
+jest.mock("../utils/logger", () => ({
   info: jest.fn(),
   error: jest.fn(),
 }));
@@ -39,7 +39,7 @@ describe("RAWG Service", () => {
     mockedAxios.create.mockReturnValue(mockClient);
 
     // Require service AFTER mocking axios.create
-    const service = require("../src/services/rawg.service");
+    const service = require("../services/rawg.service");
     searchGames = service.searchGames;
     getGameDetails = service.getGameDetails;
     getScreenshots = service.getScreenshots;

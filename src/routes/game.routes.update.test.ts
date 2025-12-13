@@ -4,11 +4,11 @@
  * Tests admin-only game updates and authorization.
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import User from "../src/models/user.model";
-import { UserRole } from "../src/types/enums";
-import Game from "../src/models/game.model";
+import User from "../models/user.model";
+import { UserRole } from "../types/enums";
+import Game from "../models/game.model";
 import jwt from "jsonwebtoken";
 
 describe("PUT /api/games/:id", () => {

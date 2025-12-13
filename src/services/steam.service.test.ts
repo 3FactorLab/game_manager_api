@@ -9,8 +9,8 @@ import {
   searchSteamGames,
   getSteamGameDetails,
   extractSteamAppId,
-} from "../src/services/steam.service";
-import { AppError } from "../src/utils/AppError";
+} from "../services/steam.service";
+import { AppError } from "../utils/AppError";
 
 // Mock node-cache to prevent caching issues
 jest.mock("node-cache", () => {
@@ -25,7 +25,7 @@ jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Mock logger
-jest.mock("../src/utils/logger", () => ({
+jest.mock("../utils/logger", () => ({
   info: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),

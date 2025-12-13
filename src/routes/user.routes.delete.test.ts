@@ -4,15 +4,15 @@
  * Tests admin-only user deletion and authorization.
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import User from "../src/models/user.model";
-import { UserRole } from "../src/types/enums";
+import User from "../models/user.model";
+import { UserRole } from "../types/enums";
 import jwt from "jsonwebtoken";
-import UserGame from "../src/models/userGame.model";
-import RefreshToken from "../src/models/refreshToken.model";
-import Game from "../src/models/game.model";
-import Order from "../src/models/order.model";
+import UserGame from "../models/userGame.model";
+import RefreshToken from "../models/refreshToken.model";
+import Game from "../models/game.model";
+import Order from "../models/order.model";
 
 describe("DELETE /api/users/:id", () => {
   let adminToken: string;

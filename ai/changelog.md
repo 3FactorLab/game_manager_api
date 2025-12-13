@@ -131,3 +131,17 @@
 ### Verified
 
 - **System Stability**: Full regression test suite (20 suites, 87 tests) passed successfully after updating multiple integration tests to comply with strict Zod schemas.
+
+### Changed
+
+- **Structure**: Migrated all backend tests from `tests/` to `src/` (Colocation Strategy) to align with Frontend architecture.
+- **Resilience**: Implemented Cron Jobs for database cleanup (`cleanupExpiredTokens`, `cleanupPendingOrders`).
+- **Resilience**: Added fallback logic to `GameAggregator` to handle Steam API failures gracefully.
+
+### Verified
+
+- **Gap Coverage**:
+  - Validated Cron Logic with isolated unit tests.
+  - Validated Payment Email Fallback (Order succeeds even if Email fails).
+  - Validated Aggregator Data Merging (RAWG + Steam).
+- **Maintenance**: Created `src/scripts/manual-cleanup.ts` for on-demand DB maintenance.

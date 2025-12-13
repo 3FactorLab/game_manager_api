@@ -6,10 +6,10 @@
  */
 import request from "supertest";
 import mongoose from "mongoose";
-import app from "../src/server";
-import User from "../src/models/user.model";
+import app from "../server";
+import User from "../models/user.model";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../src/config/env";
+import { JWT_SECRET } from "../config/env";
 import { JwtPayload } from "../middleware/auth.middleware";
 
 describe("Role Integration Tests", () => {

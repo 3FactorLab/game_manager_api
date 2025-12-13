@@ -4,13 +4,13 @@
  * Tests backward compatibility and URL-based images.
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import Game from "../src/models/game.model";
-import User from "../src/models/user.model";
-import { UserRole } from "../src/types/enums";
+import Game from "../models/game.model";
+import User from "../models/user.model";
+import { UserRole } from "../types/enums";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../src/config/env";
+import { JWT_SECRET } from "../config/env";
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "1h" });

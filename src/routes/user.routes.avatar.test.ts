@@ -4,12 +4,12 @@
  * @target src/controllers/auth.controller.ts
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import { User } from "../src/models";
-import { UserRole } from "../src/types/enums";
+import { User } from "../models";
+import { UserRole } from "../types/enums";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../src/config/env";
+import { JWT_SECRET } from "../config/env";
 import path from "path";
 
 const generateToken = (id: string, role: string) => {

@@ -4,10 +4,10 @@
  * Tests request validation for user and game endpoints.
  */
 import request from "supertest";
-import app from "../src/server";
+import app from "../server";
 import mongoose from "mongoose";
-import User from "../src/models/user.model";
-import { UserRole } from "../src/types/enums";
+import User from "../models/user.model";
+import { UserRole } from "../types/enums";
 
 describe("Request Validation (Non-Destructive)", () => {
   // Connect to DB before tests (using existing connection logic in server, but ensuring it's ready)

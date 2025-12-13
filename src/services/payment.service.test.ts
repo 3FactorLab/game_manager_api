@@ -3,21 +3,21 @@
  * @description Unit tests for payment service.
  * Target: src/services/payment.service.ts
  */
-import { simulatePurchase } from "../src/services/payment.service";
-import Order from "../src/models/order.model";
-import UserGame from "../src/models/userGame.model";
-import User from "../src/models/user.model";
-import Game from "../src/models/game.model";
-import * as mailService from "../src/services/mail.service";
-import { OrderStatus } from "../src/types/enums";
-import { AppError } from "../src/utils/AppError";
+import { simulatePurchase } from "../services/payment.service";
+import Order from "../models/order.model";
+import UserGame from "../models/userGame.model";
+import User from "../models/user.model";
+import Game from "../models/game.model";
+import * as mailService from "../services/mail.service";
+import { OrderStatus } from "../types/enums";
+import { AppError } from "../utils/AppError";
 
 // Mock models
-jest.mock("../src/models/order.model");
-jest.mock("../src/models/userGame.model");
-jest.mock("../src/models/user.model");
-jest.mock("../src/models/game.model");
-jest.mock("../src/services/mail.service");
+jest.mock("../models/order.model");
+jest.mock("../models/userGame.model");
+jest.mock("../models/user.model");
+jest.mock("../models/game.model");
+jest.mock("../services/mail.service");
 
 describe("Payment Service", () => {
   afterEach(() => {
@@ -98,6 +98,35 @@ describe("Payment Service", () => {
       await expect(simulatePurchase("u1", ["g1"])).rejects.toThrow(
         "User not found"
       );
+    });
+
+    it("should succeed and complete order even if email service fails", async () => {
+      // Arrange
+      const mockUserId = "507f1f77bcf86cd799439011";
+      const mockGameIds = ["game1"];
+      const mockUser = {
+        _id: mockUserId,
+        email: "test@test.com",
+        username: "testuser",
+      };
+      const mockGames = [{ _id: "game1", price: 10, title: "Game 1" }];
+
+      (User.findById as jest.Mock).mockResolvedValue(mockUser);
+      (Game.find as jest.Mock).mockResolvedValue(mockGames);
+      (Order.create as jest.Mock).mockResolvedValue({ _id: "order123" });
+      (UserGame.findOneAndUpdate as jest.Mock).mockResolvedValue({});
+
+      // Mock Email Failure
+      (mailService.sendPurchaseConfirmation as jest.Mock).mockRejectedValue(
+        new Error("SMTP Down")
+      );
+
+      // Act
+      const result = await simulatePurchase(mockUserId, mockGameIds);
+
+      // Assert
+      expect(result.success).toBe(true); // Should still succeed
+      expect(mailService.sendPurchaseConfirmation).toHaveBeenCalled(); // Should have tried
     });
   });
 });

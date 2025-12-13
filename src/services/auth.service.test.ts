@@ -5,8 +5,8 @@
  */
 import { jest } from "@jest/globals";
 import bcrypt from "bcrypt";
-import User from "../src/models/user.model";
-import { registerUser } from "../src/services/auth.service";
+import User from "../models/user.model";
+import { registerUser } from "../services/auth.service";
 
 // Mock bcrypt
 jest.mock("bcrypt", () => ({
@@ -15,7 +15,7 @@ jest.mock("bcrypt", () => ({
 }));
 
 // Mock User model
-jest.mock("../src/models/user.model");
+jest.mock("../models/user.model");
 
 describe("Auth Service - registerUser", () => {
   beforeEach(() => {

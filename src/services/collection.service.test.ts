@@ -8,16 +8,16 @@ import {
   getCollection,
   updateCollectionItem,
   removeFromCollection,
-} from "../src/services/collection.service";
-import UserGame from "../src/models/userGame.model";
-import { GameStatus } from "../src/types/enums";
-import { AppError } from "../src/utils/AppError";
-import * as GameService from "../src/services/game.service";
+} from "../services/collection.service";
+import UserGame from "../models/userGame.model";
+import { GameStatus } from "../types/enums";
+import { AppError } from "../utils/AppError";
+import * as GameService from "../services/game.service";
 
 // Mock UserGame model
-jest.mock("../src/models/userGame.model");
+jest.mock("../models/userGame.model");
 // Mock GameService
-jest.mock("../src/services/game.service");
+jest.mock("../services/game.service");
 
 describe("Collection Service", () => {
   afterEach(() => {

@@ -7,14 +7,14 @@ import {
   addToWishlist,
   removeFromWishlist,
   getWishlist,
-} from "../src/services/user.service";
-import User from "../src/models/user.model";
-import Game from "../src/models/game.model";
-import { AppError } from "../src/utils/AppError";
+} from "../services/user.service";
+import User from "../models/user.model";
+import Game from "../models/game.model";
+import { AppError } from "../utils/AppError";
 
 // Mock models
-jest.mock("../src/models/user.model");
-jest.mock("../src/models/game.model");
+jest.mock("../models/user.model");
+jest.mock("../models/game.model");
 
 const mockUserId = "507f1f77bcf86cd799439011";
 const mockGameId = "507f1f77bcf86cd799439012";

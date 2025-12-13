@@ -6,10 +6,10 @@
  */
 import request from "supertest";
 import mongoose from "mongoose";
-import app from "../src/server";
-import User from "../src/models/user.model";
-import Game from "../src/models/game.model";
-import UserGame from "../src/models/userGame.model";
+import app from "../server";
+import User from "../models/user.model";
+import Game from "../models/game.model";
+import UserGame from "../models/userGame.model";
 
 describe("Catalog & Collection Integration Tests", () => {
   let token: string;
