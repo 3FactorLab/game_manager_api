@@ -58,6 +58,10 @@ Aislamos la lógica de negocio.
 - **RoleMiddleware**: Intenta acceder a rutas de admin siendo usuario normal (debe dar 403).
 - **ZodMiddleware**: Envía JSONs malformados (debe dar 400 con detalles).
 
+### D. Validación de Integridad (VDD) - New Phase
+
+- **Scripts de Integridad**: `validate-phaseX.js`. Validación estática que chequea logs prohibidos, imports circulares y ejecutabilidad de tests críticos antes de release.
+
 ---
 
 ## 3. Comandos de Ejecución

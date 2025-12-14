@@ -12,6 +12,14 @@ Usamos **Jest** como framework de testing. Tenemos configurados scripts en `pack
 
 Este es el comando principal. Ejecuta tanto pruebas unitarias como de integración.
 
+### 🛡️ Tests de Integridad (VDD)
+
+```bash
+npm run validate:phaseX
+```
+
+Para asegurar que todo el proyecto cumple los estándares antes de cerrar una fase, ejecutamos scripts de validación que chequean logs prohibidos, imports circulares y cobertura crítica.
+
 ```bash
 npm test
 ```
@@ -64,10 +72,6 @@ Verifican que nuestros adaptadores para RAWG y Steam funcionen correctamente.
   - Valida la lógica de extracción de AppIDs desde URLs.
 - **`public.games.test.ts`**:
   - Verifica que los endpoints públicos (`/api/public/games`) devuelven datos limpios (sin campos sensibles).
-
-### 🛡️ Tests de Autenticación
-
-### 🛡️ Tests de Autenticación y Usuarios
 
 ### 🛡️ Tests de Seguridad (Defense in Depth)
 

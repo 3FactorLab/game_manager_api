@@ -43,6 +43,14 @@ Además de la API REST, el backend incluye una suite de scripts de automatizaci�
 
 - **Objetivo**: Mantenimiento. Recorre la base de datos y corrige precios que estén en formato incorrecto o actualiza precios antiguos consultando a Steam de nuevo.
 
+### E. Validadores de Integridad (`validate-phaseX.js`)
+
+- **Objetivo**: Aseguramiento de Calidad (QA) pre-commit.
+- **Funcionamiento**:
+  1. Escanea el código fuente buscando patrones prohibidos (console.log, imports absolutos rotos).
+  2. Ejecuta una suite selectiva de tests críticos.
+  3. Falla el build si no se cumplen los estándares de la fase.
+
 ## 3. Mejores Prácticas en Scripts
 
 1.  **Independencia**: Cada script inicia su propia conexión a la DB y la cierra limpiamente al terminar.

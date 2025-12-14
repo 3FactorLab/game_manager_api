@@ -145,3 +145,15 @@
   - Validated Payment Email Fallback (Order succeeds even if Email fails).
   - Validated Aggregator Data Merging (RAWG + Steam).
 - **Maintenance**: Created `src/scripts/manual-cleanup.ts` for on-demand DB maintenance.
+
+## [Unreleased] - 2025-12-14 (Performance Update)
+
+### Added
+
+- `compression` middleware to `server.ts` for GZIP response optimization.
+- `scripts/validate-phase1.js` for automated backend health checks.
+- Comprehensive unit tests for `rawg.service.ts` covering caching logic.
+
+### Changed
+
+- `rawg.service.test.ts` refactored to use explicit `node-cache` mocks for hit/miss verification.

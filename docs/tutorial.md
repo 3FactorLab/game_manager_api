@@ -366,7 +366,7 @@ Separamos la **definición** de la **ejecución**.
 
 - **Qué hace**: Configura la aplicación Express.
 - **Detalle**:
-  - Monta los middlewares globales (Helmet, CORS, JSON).
+  - Monta los middlewares globales (Helmet, CORS, JSON, Gzip/Compression).
   - Monta las rutas (`/api/...`).
   - Configura el manejador global de errores.
   - **No** arranca el servidor (no hace `listen`). Esto permite importarla en los tests sin ocupar puertos.
@@ -390,6 +390,7 @@ Herramientas de automatización para mantenimiento y carga de datos.
 - **`seed.ts`**: El "Restaurador". Lee `data/games.json` y repobla la base de datos limpia. Ideal para resets.
 - **`setupTestAdmin.ts`**: Crea un usuario admin para pruebas.
 - **`fix-prices.ts`**: Script de utilidad para corregir discrepancias de precios.
+- **`validate-phaseX.js`**: Scripts de integridad para el estándar "Validation Driven Development" (VDD).
 
 ---
 

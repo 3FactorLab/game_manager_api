@@ -24,6 +24,10 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
   - Los schemas deben estar en `src/validators/zod/`.
   - Usar `validateZod` middleware.
   - Mantener paridad con los schemas del frontend cuando aplique.
+- **Validación Automatizada (NUEVO ESTÁNDAR)**:
+  - **OBLIGATORIO**: Para cada fase mayor de implementación o refactor, se debe crear un script de validación `scripts/validate-phaseX.js`.
+  - Este script debe verificar integridad, prohibiciones (logs, imports) y ejecutar tests críticos.
+  - Objetivo: "Validation Driven Development" - Asegurar la ejecución de los planes mediante código.
 - Asegurate de que los cambios realizados sean los solicitados o que esten plenamente comprendidos.
 - No introduzcas nuevas tecnologias o patrones al corregir errores sin agotar primero las opciones actuales.
 - Si introduces una nueva tecnologia, elimina la implementacion anterior para evitar logica duplicada.

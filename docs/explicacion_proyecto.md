@@ -60,7 +60,7 @@ Aquí te detallo qué encontrarás en cada carpeta dentro de `src`:
 
 ### 🤖 Automatización
 
-- **`scripts/`**: Programas que corren fuera del servidor. Aquí está el **Importador** de juegos y los **Seeds** para restaurar la DB.
+- **`scripts/`**: Programas que corren fuera del servidor. Aquí está el **Importador** de juegos, los **Seeds** para restaurar la DB y los **Validadores** de integridad.
 
 ---
 

@@ -301,7 +301,7 @@ backend/
 │   ├── services/       # 🧠 Business Logic (The Core)
 │   ├── middleware/     # 🛡️ Auth, Error, Validation Rules
 │   ├── utils/          # 🛠️ Helpers (Logger, ApiError)
-│   ├── scripts/        # 🤖 Automation Tools (Import/Seed)
+│   ├── scripts/        # 🤖 Automation Tools (Import/Seed, Validation)
 │   └── app.ts          # 🚀 Entry Point
 ├── tests/              # 🧪 Jest Integration/Unit Tests
 ├── docs/               # 📘 Documentation
@@ -318,6 +318,7 @@ Gestiona el entorno y las conexiones externas.
 
 - **Validación Zod**: Usamos `env.ts` para validar variables de entorno al arranque. Si falta `DB_URI` o `JWT_SEC`, la app falla inmediatamente ("Fail-Fast"), previniendo errores en runtime.
 - **Singleton DB**: `db.ts` asegura una única conexión a MongoDB optimizada con pool de conexiones.
+- **Gzip Compression**: Compresión de respuestas HTTP implementada globalmente para reducir tamaño de payload.
 
 ### 2. Modelos (`src/models/`)
 

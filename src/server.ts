@@ -18,6 +18,7 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import compression from "compression";
 import { errorHandler } from "./middleware/error.middleware";
 import logger from "./utils/logger";
 import { initCronJobs } from "./services/cron.service";
@@ -70,6 +71,7 @@ const PORT = process.env.PORT || 3500;
 app.use(helmet());
 app.use(cors());
 app.use(morgan("dev"));
+app.use(compression());
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
@@ -125,6 +127,7 @@ export default app;
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
+    logger.info("Compression middleware enabled");
     logger.info(`Swagger docs available at http://localhost:${PORT}/api-docs`);
   });
 }
