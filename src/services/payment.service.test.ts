@@ -1,7 +1,7 @@
 /**
  * @file payment.service.test.ts
- * @description Unit tests for payment service.
- * Target: src/services/payment.service.ts
+ * @description Unit tests for payment service using jest.spyOn for robust mocking.
+ * Complies with strict Layered Architecture (tests pure logic) and isolates DB operations.
  */
 import { simulatePurchase } from "../services/payment.service";
 import Order from "../models/order.model";
@@ -12,16 +12,26 @@ import * as mailService from "../services/mail.service";
 import { OrderStatus } from "../types/enums";
 import { AppError } from "../utils/AppError";
 
-// Mock models
-jest.mock("../models/order.model");
-jest.mock("../models/userGame.model");
-jest.mock("../models/user.model");
-jest.mock("../models/game.model");
-jest.mock("../services/mail.service");
-
 describe("Payment Service", () => {
+  // Spies
+  let userFindByIdSpy: jest.SpyInstance;
+  let gameFindSpy: jest.SpyInstance;
+  let orderCreateSpy: jest.SpyInstance;
+  let userGameFindOneAndUpdateSpy: jest.SpyInstance;
+  let sendEmailSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    // Setup spies before each test
+    // Returns "Chainable" mock object for Mongoose queries if needed, or simple promise
+    userFindByIdSpy = jest.spyOn(User, "findById");
+    gameFindSpy = jest.spyOn(Game, "find");
+    orderCreateSpy = jest.spyOn(Order, "create");
+    userGameFindOneAndUpdateSpy = jest.spyOn(UserGame, "findOneAndUpdate");
+    sendEmailSpy = jest.spyOn(mailService, "sendPurchaseConfirmation");
+  });
+
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks(); // Restore original methods
   });
 
   describe("simulatePurchase", () => {
@@ -39,37 +49,48 @@ describe("Payment Service", () => {
       };
 
       const mockGames = [
-        { _id: "507f1f77bcf86cd799439012", price: 10, title: "Game 1" },
-        { _id: "507f1f77bcf86cd799439013", price: 20, title: "Game 2" },
+        {
+          _id: "507f1f77bcf86cd799439012",
+          price: 10,
+          title: "Game 1",
+          image: "img1.jpg",
+        },
+        {
+          _id: "507f1f77bcf86cd799439013",
+          price: 20,
+          title: "Game 2",
+          image: "img2.jpg",
+        },
       ];
 
-      // Mock Data Fetching
-      (User.findById as jest.Mock).mockResolvedValue(mockUser);
-      (Game.find as jest.Mock).mockResolvedValue(mockGames);
+      // Mocks
+      userFindByIdSpy.mockResolvedValue(mockUser);
+      gameFindSpy.mockResolvedValue(mockGames);
 
-      // Mock Order.create
+      // Order creation mock
       const mockOrder = {
         _id: "order123",
         user: mockUserId,
+        items: [],
+        totalAmount: 30,
         status: OrderStatus.COMPLETED,
         toString: () => "order123",
       };
-      (Order.create as jest.Mock).mockResolvedValue(mockOrder);
+      orderCreateSpy.mockResolvedValue(mockOrder as any);
 
-      // Mock UserGame.findOneAndUpdate
-      (UserGame.findOneAndUpdate as jest.Mock).mockResolvedValue({});
+      // UserGame update mock
+      userGameFindOneAndUpdateSpy.mockResolvedValue({});
 
-      // Mock Mail Service
-      (mailService.sendPurchaseConfirmation as jest.Mock).mockResolvedValue(
-        true
-      );
+      // Mail mock
+      sendEmailSpy.mockResolvedValue(true);
 
       const result = await simulatePurchase(mockUserId, mockGameIds);
 
-      expect(User.findById).toHaveBeenCalledWith(mockUserId);
-      expect(Game.find).toHaveBeenCalledWith({ _id: { $in: mockGameIds } });
+      // Assertions
+      expect(userFindByIdSpy).toHaveBeenCalledWith(mockUserId);
+      expect(gameFindSpy).toHaveBeenCalledWith({ _id: { $in: mockGameIds } });
 
-      expect(Order.create).toHaveBeenCalledWith(
+      expect(orderCreateSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           user: mockUserId,
           totalAmount: 30,
@@ -77,56 +98,55 @@ describe("Payment Service", () => {
         })
       );
 
-      expect(UserGame.findOneAndUpdate).toHaveBeenCalledTimes(2);
-      expect(mailService.sendPurchaseConfirmation).toHaveBeenCalled();
+      // Should check validation of order inputs implicitly via the call check above
+      expect(userGameFindOneAndUpdateSpy).toHaveBeenCalledTimes(2);
+      expect(sendEmailSpy).toHaveBeenCalled();
+
       expect(result.success).toBe(true);
       expect(result.orderId).toBe("order123");
     });
 
-    it("should throw error if no games provided", async () => {
-      // Validation happens before fetching user/games
-      (User.findById as jest.Mock).mockResolvedValue({ _id: "u1" });
-      (Game.find as jest.Mock).mockResolvedValue([]);
+    it("should throw error if input validation fails (no games)", async () => {
+      // Even though we mock data, logic handles validation first.
+      const mockUserId = "u1";
+      const mockUser = { _id: "u1" };
 
-      await expect(simulatePurchase("u1", [])).rejects.toThrow(
-        AppError // Checks for AppError instance
-      );
+      userFindByIdSpy.mockResolvedValue(mockUser);
+      // Return empty array for games
+      gameFindSpy.mockResolvedValue([]);
+
+      await expect(simulatePurchase(mockUserId, [])).rejects.toThrow(AppError);
+      // Should fail with 400 or 404 depending on logic
     });
 
     it("should throw error if user not found", async () => {
-      (User.findById as jest.Mock).mockResolvedValue(null);
+      userFindByIdSpy.mockResolvedValue(null);
+
       await expect(simulatePurchase("u1", ["g1"])).rejects.toThrow(
         "User not found"
       );
     });
 
-    it("should succeed and complete order even if email service fails", async () => {
-      // Arrange
-      const mockUserId = "507f1f77bcf86cd799439011";
-      const mockGameIds = ["game1"];
-      const mockUser = {
-        _id: mockUserId,
-        email: "test@test.com",
-        username: "testuser",
-      };
-      const mockGames = [{ _id: "game1", price: 10, title: "Game 1" }];
+    it("should complete successfully even if email fails", async () => {
+      const mockUserId = "u1";
+      const mockUser = { _id: "u1", email: "e@e.com", username: "u" };
+      const mockGames = [{ _id: "g1", price: 10, title: "G1" }];
 
-      (User.findById as jest.Mock).mockResolvedValue(mockUser);
-      (Game.find as jest.Mock).mockResolvedValue(mockGames);
-      (Order.create as jest.Mock).mockResolvedValue({ _id: "order123" });
-      (UserGame.findOneAndUpdate as jest.Mock).mockResolvedValue({});
+      userFindByIdSpy.mockResolvedValue(mockUser);
+      gameFindSpy.mockResolvedValue(mockGames);
+      orderCreateSpy.mockResolvedValue({
+        _id: "o1",
+        toString: () => "o1",
+      } as any);
+      userGameFindOneAndUpdateSpy.mockResolvedValue({});
 
-      // Mock Email Failure
-      (mailService.sendPurchaseConfirmation as jest.Mock).mockRejectedValue(
-        new Error("SMTP Down")
-      );
+      // Mock email failure
+      sendEmailSpy.mockRejectedValue(new Error("SMTP Error"));
 
-      // Act
-      const result = await simulatePurchase(mockUserId, mockGameIds);
+      const result = await simulatePurchase(mockUserId, ["g1"]);
 
-      // Assert
-      expect(result.success).toBe(true); // Should still succeed
-      expect(mailService.sendPurchaseConfirmation).toHaveBeenCalled(); // Should have tried
+      expect(result.success).toBe(true);
+      expect(sendEmailSpy).toHaveBeenCalled();
     });
   });
 });

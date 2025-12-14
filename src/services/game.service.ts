@@ -2,9 +2,10 @@
  * @file game.service.ts
  * @description Manages the global game catalog. Handles searching, creating, and updating games.
  */
+import mongoose, { SortOrder } from "mongoose";
 import Game, { IGame } from "../models/game.model";
 import { AppError } from "../utils/AppError";
-import mongoose from "mongoose";
+
 import UserGame from "../models/userGame.model";
 // ...
 
@@ -18,7 +19,8 @@ export const searchGames = async (
   sortBy: string = "releaseDate",
   order: "asc" | "desc" = "desc"
 ) => {
-  const filter: any = {};
+  // Use strict MongoDB filter type for safety during construction
+  const filter: mongoose.mongo.Filter<IGame> = {};
 
   // Multi-field search using $or operator (Title, Genre, Developer, Publisher, Platform)
   // This allows finding "Cyber" -> "Cyberpunk" across multiple fields
@@ -40,7 +42,7 @@ export const searchGames = async (
   const skip = (page - 1) * limit;
 
   // Sorting logic
-  const sortOptions: any = {};
+  const sortOptions: { [key: string]: SortOrder } = {};
   // Handle specific sort fields
   if (sortBy === "price") {
     // Sort by base price
@@ -54,11 +56,13 @@ export const searchGames = async (
   // This prevents duplicate games across pages when primary sort field has duplicates
   sortOptions["_id"] = 1;
 
-  const games = await Game.find(filter)
+  // Cast to any to bypass Mongoose 9 type mismatch while keeping strict filter construction
+  const games = await Game.find(filter as any)
     .sort(sortOptions)
     .skip(skip)
     .limit(limit);
-  const total = await Game.countDocuments(filter);
+
+  const total = await Game.countDocuments(filter as any);
 
   return {
     games,

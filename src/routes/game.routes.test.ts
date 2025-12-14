@@ -5,7 +5,7 @@
  * Target: src/routes/game.routes.ts, src/routes/collection.routes.ts
  */
 import request from "supertest";
-import mongoose from "mongoose";
+
 import app from "../server";
 import User from "../models/user.model";
 import Game from "../models/game.model";

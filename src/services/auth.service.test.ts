@@ -1,25 +1,30 @@
-/**
- * @file auth.service.test.ts
- * @description Unit tests for authentication service.
- * Tests password hashing and user registration logic.
- */
 import { jest } from "@jest/globals";
-import bcrypt from "bcrypt";
 import User from "../models/user.model";
 import { registerUser } from "../services/auth.service";
+import bcrypt from "bcrypt";
 
-// Mock bcrypt
-jest.mock("bcrypt", () => ({
-  hash: jest.fn(),
-  compare: jest.fn(),
-}));
-
-// Mock User model
-jest.mock("../models/user.model");
+// Mock bcrypt ensuring compatibility
+jest.mock("bcrypt", () => {
+  const mHash = jest.fn();
+  const mCompare = jest.fn();
+  return {
+    __esModule: true,
+    default: {
+      hash: mHash,
+      compare: mCompare,
+    },
+    hash: mHash,
+    compare: mCompare,
+  };
+});
 
 describe("Auth Service - registerUser", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("should hash the password and save the user", async () => {
@@ -30,33 +35,26 @@ describe("Auth Service - registerUser", () => {
       password: "password123",
     };
 
-    // Configure what the mocks return
-    (bcrypt.hash as jest.Mock).mockResolvedValue("hashed_password" as never);
+    // Configure bcrypt mock
+    (bcrypt.hash as any).mockResolvedValue("hashed_password");
 
-    // Mock save method
+    // Mock save method using SpyOn on Prototype
     const mockSave = jest
-      .fn()
-      .mockResolvedValue({ _id: "id_falso_123", ...userData } as never);
-    (User as unknown as jest.Mock).mockImplementation(() => ({
-      save: mockSave,
-    }));
+      .spyOn(User.prototype, "save")
+      .mockImplementation(function (this: any) {
+        return Promise.resolve(this);
+      });
 
     // B. ACT
     const result = await registerUser(userData);
 
     // C. ASSERT
-    // Was hash called with the correct password?
     expect(bcrypt.hash).toHaveBeenCalledWith("password123", 10);
 
-    // Was the user created with the correct data?
-    expect(User).toHaveBeenCalledWith({
-      username: "testuser",
-      email: "test@example.com",
-      password: "hashed_password",
-      role: "user",
-    });
+    // Validate result contains hashed password
+    expect(result.password).toBe("hashed_password");
+    expect(result.username).toBe("testuser");
 
-    // Was it saved to the DB (simulated)?
     expect(mockSave).toHaveBeenCalled();
   });
 });

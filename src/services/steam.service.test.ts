@@ -1,7 +1,7 @@
 /**
  * @file steam.service.test.ts
  * @description Unit tests for Steam Service.
- * Used mocks for axios and node-cache to simulate Steam API responses without network calls.
+ * Uses jest.spyOn for axios to ensure no external requests are made.
  * Destination: Validation of src/services/steam.service.ts
  */
 import axios from "axios";
@@ -12,17 +12,13 @@ import {
 } from "../services/steam.service";
 import { AppError } from "../utils/AppError";
 
-// Mock node-cache to prevent caching issues
+// Mock node-cache (Constructor mock)
 jest.mock("node-cache", () => {
   return jest.fn().mockImplementation(() => ({
     get: jest.fn(),
     set: jest.fn(),
   }));
 });
-
-// Mock axios
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Mock logger
 jest.mock("../utils/logger", () => ({
@@ -32,8 +28,19 @@ jest.mock("../utils/logger", () => ({
 }));
 
 describe("Steam Service", () => {
-  beforeEach(() => {
+  let axiosGetSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    // Spy on the default export's get method
+    axiosGetSpy = jest.spyOn(axios, "get");
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   describe("searchSteamGames", () => {
@@ -43,11 +50,11 @@ describe("Steam Service", () => {
           items: [{ id: 12345, name: "Game 1" }],
         },
       };
-      mockedAxios.get.mockResolvedValue(mockResponse);
+      axiosGetSpy.mockResolvedValue(mockResponse);
 
       const result = await searchSteamGames("Game 1");
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
+      expect(axiosGetSpy).toHaveBeenCalledWith(
         expect.stringContaining("storesearch"),
         expect.any(Object)
       );
@@ -58,14 +65,14 @@ describe("Steam Service", () => {
       const mockResponse = {
         data: { items: [] },
       };
-      mockedAxios.get.mockResolvedValue(mockResponse);
+      axiosGetSpy.mockResolvedValue(mockResponse);
 
       const result = await searchSteamGames("Unknown Game");
       expect(result).toBeNull();
     });
 
     it("should return null on API error", async () => {
-      mockedAxios.get.mockRejectedValue(new Error("API Error"));
+      axiosGetSpy.mockRejectedValue(new Error("API Error"));
 
       const result = await searchSteamGames("Game 1");
       expect(result).toBeNull();
@@ -86,11 +93,11 @@ describe("Steam Service", () => {
           },
         },
       };
-      mockedAxios.get.mockResolvedValueOnce(mockResponse);
+      axiosGetSpy.mockResolvedValueOnce(mockResponse);
 
       const result = await getSteamGameDetails(appId);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
+      expect(axiosGetSpy).toHaveBeenCalledWith(
         expect.stringContaining("appdetails"),
         expect.any(Object)
       );
@@ -105,14 +112,14 @@ describe("Steam Service", () => {
           [appId]: { success: false },
         },
       };
-      mockedAxios.get.mockResolvedValueOnce(mockResponse);
+      axiosGetSpy.mockResolvedValueOnce(mockResponse);
 
       const result = await getSteamGameDetails(appId);
       expect(result).toBeNull();
     });
 
     it("should throw AppError on API failure", async () => {
-      mockedAxios.get.mockRejectedValueOnce(new Error("API Error"));
+      axiosGetSpy.mockRejectedValueOnce(new Error("API Error"));
 
       await expect(getSteamGameDetails(12345)).rejects.toThrow(AppError);
     });

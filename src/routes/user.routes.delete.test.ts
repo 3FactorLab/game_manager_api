@@ -112,7 +112,14 @@ describe("DELETE /api/users/:id", () => {
     await Order.create({
       user: targetUserId,
       totalAmount: 59.99,
-      games: [game._id],
+      items: [
+        {
+          game: game._id,
+          title: "Cascade Test Game",
+          price: 59.99,
+          licenseKey: "TEST-KEY-123",
+        },
+      ],
       status: "completed",
     });
 

@@ -14,14 +14,9 @@ import { GameStatus } from "../types/enums";
 import { AppError } from "../utils/AppError";
 import * as GameService from "../services/game.service";
 
-// Mock UserGame model
-jest.mock("../models/userGame.model");
-// Mock GameService
-jest.mock("../services/game.service");
-
 describe("Collection Service", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe("addToCollection", () => {
@@ -30,7 +25,10 @@ describe("Collection Service", () => {
       const mockGameId = "507f1f77bcf86cd799439012";
       const mockData = { status: GameStatus.PLAYING };
 
-      (UserGame.findOne as jest.Mock).mockResolvedValue(null);
+      jest
+        .spyOn(GameService, "getCatalogGameById")
+        .mockResolvedValue({} as any);
+      jest.spyOn(UserGame, "findOne").mockResolvedValue(null);
 
       const mockSavedItem = {
         _id: "507f1f77bcf86cd799439013",
@@ -38,10 +36,11 @@ describe("Collection Service", () => {
         game: mockGameId,
         ...mockData,
       };
-      (UserGame.create as jest.Mock).mockResolvedValue(mockSavedItem);
+      jest.spyOn(UserGame, "create").mockResolvedValue(mockSavedItem as any);
 
       const result = await addToCollection(mockUserId, mockGameId, mockData);
 
+      expect(GameService.getCatalogGameById).toHaveBeenCalledWith(mockGameId);
       expect(UserGame.findOne).toHaveBeenCalledWith({
         user: mockUserId,
         game: mockGameId,
@@ -53,7 +52,12 @@ describe("Collection Service", () => {
       const mockUserId = "507f1f77bcf86cd799439011";
       const mockGameId = "507f1f77bcf86cd799439012";
 
-      (UserGame.findOne as jest.Mock).mockResolvedValue({ _id: "item123" });
+      jest
+        .spyOn(GameService, "getCatalogGameById")
+        .mockResolvedValue({} as any);
+      jest.spyOn(UserGame, "findOne").mockResolvedValue({
+        _id: "item123",
+      } as any);
 
       await expect(
         addToCollection(mockUserId, mockGameId, { status: GameStatus.PLAYING })
@@ -67,13 +71,14 @@ describe("Collection Service", () => {
       const mockItems = [{ _id: "item1", game: { title: "Game 1" } }];
       const mockCountResult = [{ total: 1 }];
 
-      (UserGame.aggregate as jest.Mock)
-        .mockResolvedValueOnce(mockCountResult)
-        .mockResolvedValueOnce(mockItems);
+      const aggregateSpy = jest.spyOn(UserGame, "aggregate");
+      aggregateSpy
+        .mockResolvedValueOnce(mockCountResult) // For count pipeline
+        .mockResolvedValueOnce(mockItems); // For data pipeline
 
       const result = await getCollection(mockUserId, 1, 10);
 
-      expect(UserGame.aggregate).toHaveBeenCalledTimes(2);
+      expect(aggregateSpy).toHaveBeenCalledTimes(2);
       expect(result.items).toEqual(mockItems);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
@@ -89,10 +94,10 @@ describe("Collection Service", () => {
       const mockUpdatedItem = { _id: mockId, ...mockUpdates };
 
       // Mock chain: findOneAndUpdate(...).populate(...)
-      const mockPopulate = jest.fn().mockResolvedValue(mockUpdatedItem);
-      (UserGame.findOneAndUpdate as jest.Mock).mockReturnValue({
-        populate: mockPopulate,
-      });
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(mockUpdatedItem),
+      } as any;
+      jest.spyOn(UserGame, "findOneAndUpdate").mockReturnValue(mockQuery);
 
       const result = await updateCollectionItem(
         mockId,
@@ -105,15 +110,15 @@ describe("Collection Service", () => {
         mockUpdates,
         { new: true }
       );
-      expect(mockPopulate).toHaveBeenCalledWith("game");
+      expect(mockQuery.populate).toHaveBeenCalledWith("game");
       expect(result).toEqual(mockUpdatedItem);
     });
 
     it("should throw an error if item not found", async () => {
-      const mockPopulate = jest.fn().mockResolvedValue(null);
-      (UserGame.findOneAndUpdate as jest.Mock).mockReturnValue({
-        populate: mockPopulate,
-      });
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(null),
+      } as any;
+      jest.spyOn(UserGame, "findOneAndUpdate").mockReturnValue(mockQuery);
 
       await expect(
         updateCollectionItem(
@@ -130,9 +135,9 @@ describe("Collection Service", () => {
       const mockId = "507f1f77bcf86cd799439013";
       const mockUserId = "507f1f77bcf86cd799439011";
 
-      (UserGame.findOneAndDelete as jest.Mock).mockResolvedValue({
+      jest.spyOn(UserGame, "findOneAndDelete").mockResolvedValue({
         _id: mockId,
-      });
+      } as any);
 
       await removeFromCollection(mockId, mockUserId);
 
@@ -143,7 +148,7 @@ describe("Collection Service", () => {
     });
 
     it("should throw an error if item not found", async () => {
-      (UserGame.findOneAndDelete as jest.Mock).mockResolvedValue(null);
+      jest.spyOn(UserGame, "findOneAndDelete").mockResolvedValue(null);
 
       await expect(
         removeFromCollection(

@@ -7,7 +7,7 @@
 import axios from "axios";
 import { AppError } from "../utils/AppError";
 
-// Mock node-cache to prevent caching issues
+// Mock node-cache
 jest.mock("node-cache", () => {
   return jest.fn().mockImplementation(() => ({
     get: jest.fn(),
@@ -15,9 +15,19 @@ jest.mock("node-cache", () => {
   }));
 });
 
-// Mock axios
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+// Mock axios with ES Module structure
+const mockGet = jest.fn();
+const mockCreate = jest.fn(() => ({
+  get: mockGet,
+}));
+
+jest.mock("axios", () => ({
+  __esModule: true,
+  default: {
+    create: mockCreate,
+    isAxiosError: jest.fn((payload) => payload?.isAxiosError === true),
+  },
+}));
 
 // Mock logger
 jest.mock("../utils/logger", () => ({
@@ -29,16 +39,9 @@ describe("RAWG Service", () => {
   let searchGames: any;
   let getGameDetails: any;
   let getScreenshots: any;
-  let mockClient: any;
 
   beforeAll(() => {
-    // Setup mock client
-    mockClient = {
-      get: jest.fn(),
-    };
-    mockedAxios.create.mockReturnValue(mockClient);
-
-    // Require service AFTER mocking axios.create
+    // Require service AFTER mocking
     const service = require("../services/rawg.service");
     searchGames = service.searchGames;
     getGameDetails = service.getGameDetails;
@@ -67,18 +70,19 @@ describe("RAWG Service", () => {
           ],
         },
       };
-      mockClient.get.mockResolvedValueOnce(mockResponse);
+      mockGet.mockResolvedValueOnce(mockResponse);
 
       const result = await searchGames("Game 1");
 
-      expect(mockClient.get).toHaveBeenCalledWith("/games", expect.any(Object));
+      expect(mockCreate).toHaveBeenCalled(); // Axios instance created
+      expect(mockGet).toHaveBeenCalledWith("/games", expect.any(Object));
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("Game 1");
       expect(result[0].rawgId).toBe(1);
     });
 
     it("should throw AppError when API call fails", async () => {
-      mockClient.get.mockRejectedValueOnce(new Error("API Error"));
+      mockGet.mockRejectedValueOnce(new Error("API Error"));
 
       await expect(searchGames("Game 1")).rejects.toThrow(AppError);
     });
@@ -95,17 +99,17 @@ describe("RAWG Service", () => {
           platforms: [{ platform: { name: "PC" } }],
         },
       };
-      mockClient.get.mockResolvedValueOnce(mockResponse);
+      mockGet.mockResolvedValueOnce(mockResponse);
 
       const result = await getGameDetails(1);
 
-      expect(mockClient.get).toHaveBeenCalledWith("/games/1");
+      expect(mockGet).toHaveBeenCalledWith("/games/1");
       expect(result.name).toBe("Game 1");
       expect(result.description).toBe("Desc");
     });
 
     it("should throw AppError when API call fails", async () => {
-      mockClient.get.mockRejectedValueOnce(new Error("API Error"));
+      mockGet.mockRejectedValueOnce(new Error("API Error"));
 
       await expect(getGameDetails(1)).rejects.toThrow(AppError);
     });
@@ -118,18 +122,18 @@ describe("RAWG Service", () => {
           results: [{ image: "img1" }, { image: "img2" }],
         },
       };
-      mockClient.get.mockResolvedValueOnce(mockResponse);
+      mockGet.mockResolvedValueOnce(mockResponse);
 
       const result = await getScreenshots(1);
 
-      expect(mockClient.get).toHaveBeenCalledWith("/games/1/screenshots", {
+      expect(mockGet).toHaveBeenCalledWith("/games/1/screenshots", {
         params: { page_size: 6 },
       });
       expect(result).toEqual(["img1", "img2"]);
     });
 
     it("should return empty array when API call fails", async () => {
-      mockClient.get.mockRejectedValueOnce(new Error("API Error"));
+      mockGet.mockRejectedValueOnce(new Error("API Error"));
 
       const result = await getScreenshots(1);
       expect(result).toEqual([]);

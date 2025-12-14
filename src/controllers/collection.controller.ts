@@ -3,7 +3,7 @@
  * @description Handles HTTP requests for the user's personal game collection.
  * Requires authentication to identify the user.
  */
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import {
   addToCollection as addToCollectionService,
   getCollection as getCollectionService,
@@ -20,7 +20,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 // Endpoint: POST /api/collection
 // Adds a game to the authenticated user's collection.
 export const addToCollection = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const userId = req.userData?.id;
     if (!userId) throw new Error("User ID not found in token");
 
@@ -34,7 +34,7 @@ export const addToCollection = asyncHandler(
 // Endpoint: GET /api/collection
 // Retrieves the user's collection with optional filters.
 export const getCollection = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const userId = req.userData!.id;
     const { page, limit, status, genre, platform } = req.query;
     const pageNum = parseInt(page as string) || 1;
@@ -53,26 +53,22 @@ export const getCollection = asyncHandler(
 );
 
 // Destination: Used in src/routes/collection.routes.ts (PUT /:id).
-export const updateItem = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.userData?.id;
-    if (!userId) throw new Error("User ID not found in token");
+export const updateItem = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.userData?.id;
+  if (!userId) throw new Error("User ID not found in token");
 
-    const { id } = req.params;
-    const updates: UpdateCollectionItemDto = req.body;
-    const updatedItem = await updateCollectionItem(id, userId, updates);
-    res.status(200).json({ message: "Item updated", item: updatedItem });
-  }
-);
+  const { id } = req.params;
+  const updates: UpdateCollectionItemDto = req.body;
+  const updatedItem = await updateCollectionItem(id, userId, updates);
+  res.status(200).json({ message: "Item updated", item: updatedItem });
+});
 
 // Destination: Used in src/routes/collection.routes.ts (DELETE /:id).
-export const removeItem = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.userData?.id;
-    if (!userId) throw new Error("User ID not found in token");
+export const removeItem = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.userData?.id;
+  if (!userId) throw new Error("User ID not found in token");
 
-    const { id } = req.params;
-    await removeFromCollection(id, userId);
-    res.status(200).json({ message: "Juego eliminado de la colección" });
-  }
-);
+  const { id } = req.params;
+  await removeFromCollection(id, userId);
+  res.status(200).json({ message: "Juego eliminado de la colección" });
+});

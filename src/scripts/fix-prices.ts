@@ -5,7 +5,6 @@
  * Fetches Steam pricing and updates DB + games.json.
  */
 
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 import fs from "fs-extra";
 import path from "path";

@@ -7,20 +7,20 @@ import { cleanupExpiredTokens, cleanupPendingOrders } from "./cron.service";
 import RefreshToken from "../models/refreshToken.model";
 import Order from "../models/order.model";
 import { OrderStatus } from "../types/enums";
-
-// Mock Mongoose Models
-jest.mock("../models/refreshToken.model");
-jest.mock("../models/order.model");
-jest.mock("../utils/logger"); // Silence logger
+import logger from "../utils/logger";
 
 describe("Cron Service", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     jest.useFakeTimers();
+    // Silence logger during tests
+    jest.spyOn(logger, "info").mockImplementation(() => logger);
+    jest.spyOn(logger, "error").mockImplementation(() => logger);
+    jest.spyOn(logger, "warn").mockImplementation(() => logger);
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe("cleanupExpiredTokens", () => {
@@ -29,14 +29,15 @@ describe("Cron Service", () => {
       const mockDate = new Date("2025-01-01T12:00:00Z");
       jest.setSystemTime(mockDate);
 
-      const deleteManyMock = jest.fn().mockResolvedValue({ deletedCount: 5 });
-      (RefreshToken.deleteMany as jest.Mock) = deleteManyMock;
+      const deleteManySpy = jest
+        .spyOn(RefreshToken, "deleteMany")
+        .mockResolvedValue({ deletedCount: 5 } as any);
 
       // Act
       await cleanupExpiredTokens();
 
       // Assert
-      expect(deleteManyMock).toHaveBeenCalledWith({
+      expect(deleteManySpy).toHaveBeenCalledWith({
         expires: { $lt: mockDate },
       });
     });
@@ -49,14 +50,15 @@ describe("Cron Service", () => {
       const twentyFourHoursAgo = new Date("2025-01-01T12:00:00Z");
       jest.setSystemTime(now);
 
-      const deleteManyMock = jest.fn().mockResolvedValue({ deletedCount: 3 });
-      (Order.deleteMany as jest.Mock) = deleteManyMock;
+      const deleteManySpy = jest
+        .spyOn(Order, "deleteMany")
+        .mockResolvedValue({ deletedCount: 3 } as any);
 
       // Act
       await cleanupPendingOrders();
 
       // Assert
-      expect(deleteManyMock).toHaveBeenCalledWith({
+      expect(deleteManySpy).toHaveBeenCalledWith({
         status: OrderStatus.PENDING,
         createdAt: { $lt: twentyFourHoursAgo },
       });

@@ -60,9 +60,22 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
 - Tras cada iteracion que cambia el comportamiento de la aplicacion deja constancia actualizando `ai/changelog.md`.
 - Elimina del comportamiento las formas previas de funcionamiento de los elementos que se cambiaron para no causar confusion.
 
-## 8. RESPETAR COHERENCIA DE TEMA E IDIOMAS
+## 8. Hardening & Best Practices (NUEVAS LEYES)
 
-- En cada cambio que te solicite quiero que lo hagas teniendo en cuenta el modo blanco y negro para que tenga coherencia visual con el restop de componentes y de igualmodo si existen varios idiomans soportados por la aplicacion deberás hacerlo.
+- **Testing Strategy (Zero-Fragility)**:
+
+  - **PROHIBIDO**: Usar `jest.mock()` para módulos internos (Services/Models) debido a problemas de hoisting.
+  - **OBLIGATORIO**: Usar `jest.spyOn(Object, 'method')`. Esto intercepta la llamada real y mantiene el tipado.
+  - **Limpieza**: Usar siempre `afterEach(() => jest.restoreAllMocks())`.
+
+- **Logging (Observabilidad)**:
+
+  - **PROHIBIDO**: `console.log` o `console.error` en código de producción (Services/Controllers).
+  - **OBLIGATORIO**: Usar `src/utils/logger.ts` (Winston). `logger.info()`, `logger.error()`.
+
+- **Mongoose 9+ (Strict Typing)**:
+  - Al definir filtros de búsqueda, tipar explícitamente con `mongoose.mongo.Filter<T>` para evitar uso de `any` inseguro.
+  - Ejemplo: `const filter: mongoose.mongo.Filter<IUser> = { ... }`.
 
 ## 9. Arquitectura y Patrones
 

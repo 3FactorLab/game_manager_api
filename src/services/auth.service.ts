@@ -2,7 +2,7 @@
  * @file auth.service.ts
  * @description Handles all authentication-related business logic: registration, login, token management, and profile updates.
  */
-import { User, IUser, UserRole } from "../models";
+import { User, UserRole } from "../models";
 import RefreshToken from "../models/refreshToken.model";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -28,7 +28,7 @@ const generateRefreshToken = (userId: string, ipAddress?: string) => {
 // Validates input, hashes password, and creates a new user.
 // Enforces 'USER' role by default for security.
 export const registerUser = async (userData: RegisterUserDto) => {
-  const { username, email, password, role } = userData;
+  const { username, email, password } = userData;
 
   if (!password) {
     throw new AppError("Password is required", 400);

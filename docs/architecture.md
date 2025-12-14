@@ -40,6 +40,14 @@ Implementamos la seguridad y el manejo de errores como capas transversales.
 - **D.R.Y. (Don't Repeat Yourself)**: Abstraemos lógica repetitiva en utilidades y servicios base para evitar duplicidad y facilitar el mantenimiento.
 - **Fail-Fast**: Validamos la configuración (`env.ts`) y los datos de entrada al inicio. Es mejor que la aplicación falle al arrancar (si falta una API Key) a que falle silenciosamente en producción.
 
+### 5. Strict Typing Strategy (Seguridad Tipada)
+
+Desde la versión 2.0 (Diciembre 2025), implementamos **Mongoose Strict Typing**.
+
+- **Problema**: Usar `any` en filtros de base de datos permitía consultas inválidas.
+- **Solución**: Usamos `mongoose.mongo.Filter<T>` en todos los Servicios.
+- **Resultado**: Si intentas filtrar por un campo que no existe en el Modelo, el código **no compila**. Seguridad en tiempo de desarrollo.
+
 ---
 
 ## 📊 Diagrama de Arquitectura (Vista Completa)
@@ -59,6 +67,7 @@ flowchart TD
     Docs["📘 Swagger UI<br/>/api-docs"]
 
     %% Middlewares (Pipeline)
+    LoggerMW["📝 HTTP Logger<br/>(Morgan)"]
     AuthMW["🔑 Auth Middleware"]
     RoleMW["👮 Role Middleware"]
     UploadMW["📤 Upload Middleware<br/>(Multer)"]
@@ -76,7 +85,8 @@ flowchart TD
     PaymentService["💳 Payment Service<br/>(Mock Checkout)"]
 
     %% Servicios de Integración
-    IntegrationService["🔌 Integration Services<br/>(RAWG/Steam + Caché)"]
+    RawgService["🔌 RAWG Service<br/>(Metadata + Caché)"]
+    SteamService["🔌 Steam Service<br/>(Precios + Caché)"]
     AggregatorService["🎯 Aggregator Service<br/>(Combina RAWG+Steam)"]
 
     %% Servicios Auxiliares
@@ -92,7 +102,8 @@ flowchart TD
     RefreshTokenModel["🔑 RefreshToken Model"]
 
     %% Flujo Principal
-    Client -->|"1. Request"| Routes
+    Client -->|"1. Request"| LoggerMW
+    LoggerMW --> Routes
     Client -.->|"Ver Docs"| Docs
 
     %% Bifurcación: Pública vs Privada
@@ -137,12 +148,15 @@ flowchart TD
 
     %% Servicios de Integración
     Controller -->|"2. Import (Admin)"| AggregatorService
-    AggregatorService -->|Consulta| IntegrationService
-    IntegrationService -->|API Calls| ExternalAPIs
+    AggregatorService -->|1. Metadata| RawgService
+    AggregatorService -->|2. Precio| SteamService
+    RawgService -->|API Calls| ExternalAPIs
+    SteamService -->|API Calls| ExternalAPIs
     AggregatorService -->|Guarda| GameModel
 
     %% Cron Service (Automatización)
-    CronService -.->|Actualiza Precios<br/>Diariamente 03:00| GameModel
+    CronService -.->|Actualiza Precios<br/>Diariamente| GameModel
+    CronService -->|Consulta| SteamService
 
     %% Modelos persisten en DB
     UserModel <-->|5. DB Ops| DB
@@ -173,6 +187,7 @@ flowchart TD
     %% Estilos - Infraestructura
     style Routes fill:#FFFFFF,stroke:#333,stroke-width:2px,color:#000
     style Docs fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#000
+    style LoggerMW fill:#E0F7FA,stroke:#006064,stroke-width:2px,color:#000
 
     %% Estilos - Middlewares
     style AuthMW fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#000
@@ -192,7 +207,8 @@ flowchart TD
     style PaymentService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
 
     %% Estilos - Servicios de Integración
-    style IntegrationService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+    style RawgService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+    style SteamService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
     style AggregatorService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
 
     %% Estilos - Servicios Auxiliares
@@ -619,6 +635,38 @@ sequenceDiagram
 ```
 
 > [!TIP] > **UX Optimization**: El ordenamiento secundario por `_id` es crucial. Sin él, si dos juegos tienen el mismo precio, MongoDB podría devolverlos en orden aleatorio entre páginas, haciendo que el usuario vea duplicados o pierda juegos al navegar.
+
+### 6. Pipeline de Agregación (Colecciones)
+
+Para listar la colección del usuario (`GET /api/collection`) con filtros avanzados, evitamos hacer múltiples consultas. Usamos el poder de **MongoDB Aggregation Framework** para hacer "Joins" y filtrado en una sola pasada.
+
+```mermaid
+flowchart TD
+    Request[("📥 Request<br/>?status=playing&genre=RPG")]
+
+    subgraph MongoDB Pipeline
+        Stage1[("🔍 $match<br/>{ user: userId, status: 'playing' }")]
+        Stage2[("🔗 $lookup<br/>from: 'games', local: 'game', foreign: '_id'")]
+        Stage3[("📄 $unwind<br/>$game")]
+        Stage4[("🎯 $match (Dynamic)<br/>{ 'game.genre': 'RPG' }")]
+        Stage5[("🔢 $sort, $skip, $limit<br/>(Paginación)")]
+    end
+
+    Output[("📤 Result JSON<br/>[ { userGame + gameDetails } ]")]
+
+    Request --> Stage1
+    Stage1 -->|Filtra Documentos Usuario| Stage2
+    Stage2 -->|Join con Catálogo Global| Stage3
+    Stage3 -->|Aplana Array| Stage4
+    Stage4 -->|Filtra por Propiedades del Juego| Stage5
+    Stage5 --> Output
+
+    style Stage1 fill:#E3F2FD,stroke:#1565C0
+    style Stage2 fill:#E1BEE7,stroke:#6A1B9A
+    style Stage4 fill:#FFEBEE,stroke:#C62828
+```
+
+> [!NOTE] > **Eficiencia**: Al filtrar primero por `user` (Stage 1), reducimos drásticamente el set de datos antes de hacer el costoso `$lookup` (Stage 2). Si filtráramos por género antes, tendríamos que escanear toda la colección de juegos.
 
 ---
 

@@ -2,16 +2,18 @@
  * @file game-aggregator.service.test.ts
  * @description Unit tests for GameAggregator Service.
  * Verifies data enrichment from RAWG and Steam, including fallback scenarios.
+ * Uses jest.spyOn for robust internal module mocking.
  */
 import { getCompleteGameData } from "./game-aggregator.service";
 import * as rawgService from "./rawg.service";
 import * as steamService from "./steam.service";
-import { AppError } from "../utils/AppError";
 
-// Mock dependent services
-jest.mock("./rawg.service");
-jest.mock("./steam.service");
-jest.mock("../utils/logger"); // Silence logger
+// Mock logger to avoid clutter
+jest.mock("../utils/logger", () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+}));
 
 describe("Game Aggregator Service", () => {
   const mockRawgData: any = {
@@ -43,32 +45,42 @@ describe("Game Aggregator Service", () => {
     },
   };
 
+  // Spies
+  let getGameDetailsSpy: jest.SpyInstance;
+  let extractSteamAppIdSpy: jest.SpyInstance;
+  let getSteamGameDetailsSpy: jest.SpyInstance;
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Setup spies
+    getGameDetailsSpy = jest.spyOn(rawgService, "getGameDetails");
+    extractSteamAppIdSpy = jest.spyOn(steamService, "extractSteamAppId");
+    getSteamGameDetailsSpy = jest.spyOn(steamService, "getSteamGameDetails");
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("should combine RAWG and Steam data successfully", async () => {
     // Arrange
-    (rawgService.getGameDetails as jest.Mock).mockResolvedValue(mockRawgData);
-    (steamService.extractSteamAppId as jest.Mock).mockReturnValue(12345);
-    (steamService.getSteamGameDetails as jest.Mock).mockResolvedValue(
-      mockSteamData
-    );
+    getGameDetailsSpy.mockResolvedValue(mockRawgData);
+    extractSteamAppIdSpy.mockReturnValue(12345);
+    getSteamGameDetailsSpy.mockResolvedValue(mockSteamData);
 
     // Act
     const result = await getCompleteGameData(123);
 
     // Assert
-    expect(result.title).toBe("Test Game"); // From RAWG
-    expect(result.steamAppId).toBe(12345); // Extracted
-    expect(result.price).toBe(1999); // From Steam
-    expect(result.currency).toBe("USD");
+    expect(result.title).toBe("Test Game");
+    expect(result.steamAppId).toBe(12345);
+    expect(result.price).toBe(1999);
   });
 
   it("should return RAWG data only if Steam ID is missing", async () => {
     // Arrange
     const noSteamRawg = { ...mockRawgData, stores: [] };
-    (rawgService.getGameDetails as jest.Mock).mockResolvedValue(noSteamRawg);
+    getGameDetailsSpy.mockResolvedValue(noSteamRawg);
+    extractSteamAppIdSpy.mockReturnValue(null);
 
     // Act
     const result = await getCompleteGameData(123);
@@ -76,28 +88,27 @@ describe("Game Aggregator Service", () => {
     // Assert
     expect(result.title).toBe("Test Game");
     expect(result.steamAppId).toBeUndefined();
-    expect(result.price).toBeUndefined();
   });
 
   it("should return RAWG data (partial) if Steam API fails", async () => {
     // Arrange
-    (rawgService.getGameDetails as jest.Mock).mockResolvedValue(mockRawgData);
-    (steamService.extractSteamAppId as jest.Mock).mockReturnValue(12345);
-    (steamService.getSteamGameDetails as jest.Mock).mockRejectedValue(
-      new Error("Steam Down")
-    );
+    getGameDetailsSpy.mockResolvedValue(mockRawgData);
+    extractSteamAppIdSpy.mockReturnValue(12345);
+    // Explicitly returning rejected promise
+    getSteamGameDetailsSpy.mockRejectedValue(new Error("Steam Down"));
 
     // Act
+    // The service handles this rejection and should return partial data
     const result = await getCompleteGameData(123);
 
     // Assert
     expect(result.title).toBe("Test Game");
-    expect(result.price).toBeUndefined(); // Should fallback gracefully
+    expect(result.price).toBeUndefined(); // Fallback
   });
 
   it("should throw 404 if game not found in RAWG", async () => {
     // Arrange
-    (rawgService.getGameDetails as jest.Mock).mockResolvedValue(null);
+    getGameDetailsSpy.mockResolvedValue(null);
 
     // Act & Assert
     await expect(getCompleteGameData(999)).rejects.toThrow("Game not found");

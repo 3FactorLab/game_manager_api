@@ -3,7 +3,7 @@
  * @description Manages the user's personal game collection.
  * Links users to games and stores personal metadata (score, status, review).
  */
-import mongoose from "mongoose";
+import mongoose, { PipelineStage } from "mongoose";
 import UserGame, { IUserGame } from "../models/userGame.model";
 import { getCatalogGameById } from "./game.service";
 import { AppError } from "../utils/AppError";
@@ -44,17 +44,18 @@ export const getCollection = async (
 ) => {
   const skip = (page - 1) * limit;
 
-  const filter: any = {
+  // Use strict strict MongoDB filter type
+  const filter: mongoose.mongo.Filter<IUserGame> = {
     user: new mongoose.Types.ObjectId(userId),
   };
-  if (status) filter.status = status;
+  if (status) filter.status = status as any;
 
   // Para filtrar por campos del juego populado, necesitamos usar aggregate o filtrar después.
   // Mongoose populate 'match' filtra los juegos, pero no elimina el documento UserGame (deja game: null).
   // La mejor opción eficiente es usar aggregate.
 
-  const pipeline: any[] = [
-    { $match: filter }, // Filtra por user y status
+  const pipeline: PipelineStage[] = [
+    { $match: filter as any }, // Filtra por user y status (cast needed for Mongoose 9)
     {
       $lookup: {
         from: "games",

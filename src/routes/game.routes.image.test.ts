@@ -33,7 +33,7 @@ describe("Game Image Logic Verification", () => {
       password: "password123",
       role: UserRole.ADMIN,
     });
-    adminToken = generateToken(admin._id as string, admin.role);
+    adminToken = generateToken(admin._id as unknown as string, admin.role);
   });
 
   afterAll(async () => {

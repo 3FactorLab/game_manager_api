@@ -86,8 +86,10 @@ Imagina que alguien hace una petición `POST /api/auth/register`. Así fluye por
 
 ## 5. Tecnologías que debes conocer aquí
 
-- **Mongoose**: Librería para hablar con MongoDB de forma fácil.
+- **Mongoose**: Librería para hablar con MongoDB de forma fácil. Usamos **Strict Typing** para evitar errores.
 - **JWT (Json Web Tokens)**: El "carnet de identidad" digital que usamos para saber quién es quién en cada petición.
+- **Winston**: Nuestro "Caja Negra" (Logger). Registra todo lo que pasa de forma ordenada, nada de `console.log` salvaje.
+- **Zod**: El portero de discoteca. Si tus datos no cumplen las reglas, no pasan.
 - **Swagger**: Si entras a `/api-docs` verás una web para probar la API sin programar nada. ¡Muy útil!
 
 ---

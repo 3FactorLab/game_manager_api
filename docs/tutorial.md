@@ -246,7 +246,8 @@ Herramientas reutilizables.
 ### `src/utils/logger.ts`
 
 - **Qué hace**: Sistema de logging profesional con **Winston**.
-- **Detalle**: Genera logs estructurados con timestamp, niveles (INFO, ERROR) y colores. Reemplaza a `console.log` para mejor observabilidad.
+- **Detalle**: Genera logs estructurados con timestamp, niveles (INFO, ERROR) y colores.
+- **Regla de Oro**: **Nunca uses `console.log`**. El logger permite filtrar errores en producción y guarda un historial limpio, mientras que `console.log` es ruido no estructurado.
 
 ### `src/utils/AppError.ts`
 

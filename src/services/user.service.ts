@@ -6,7 +6,7 @@
  */
 
 import { Types } from "mongoose";
-import User, { IUser } from "../models/user.model";
+import User from "../models/user.model";
 import Game from "../models/game.model";
 import { AppError } from "../utils/AppError";
 import { WishlistResponseDto } from "../dtos/user.dto";

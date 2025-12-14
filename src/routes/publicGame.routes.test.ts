@@ -24,7 +24,7 @@ describe("Public Games API", () => {
         publisher: "CD Projekt",
         price: 59.99,
         prices: { usd: 59.99 },
-        releaseDate: new Date("2020-12-10"),
+        released: new Date("2020-12-10"),
       },
       {
         title: "The Witcher 3",
@@ -34,7 +34,7 @@ describe("Public Games API", () => {
         publisher: "CD Projekt",
         price: 39.99,
         prices: { usd: 39.99 },
-        releaseDate: new Date("2015-05-19"),
+        released: new Date("2015-05-19"),
       },
       {
         title: "Stardew Valley",
@@ -44,7 +44,7 @@ describe("Public Games API", () => {
         publisher: "ConcernedApe",
         price: 14.99,
         prices: { usd: 14.99 },
-        releaseDate: new Date("2016-02-26"),
+        released: new Date("2016-02-26"),
       },
       {
         title: "Celeste",
@@ -54,7 +54,7 @@ describe("Public Games API", () => {
         publisher: "Maddy Makes Games",
         price: 19.99,
         prices: { usd: 19.99 },
-        releaseDate: new Date("2018-01-25"),
+        released: new Date("2018-01-25"),
       },
     ]);
   });

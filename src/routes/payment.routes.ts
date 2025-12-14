@@ -5,7 +5,6 @@
 import { Router } from "express";
 import * as paymentController from "../controllers/payment.controller";
 import checkAuth from "../middleware/auth.middleware";
-import express from "express";
 
 const router = Router();
 

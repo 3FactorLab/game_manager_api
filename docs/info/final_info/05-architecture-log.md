@@ -1,67 +1,64 @@
-# 🏗️ Project Architecture & Patterns Log
+# 🏛️ Log de Arquitectura y Decisiones Técnicas
 
-## 1. Filosofía de Diseño
+Este documento rastrea las decisiones arquitectónicas clave que dan forma al proyecto `game-manager-api`.
 
-El proyecto sigue una arquitectura **Layered (por capas)** clásica, diseñada para separar responsabilidades, facilitar el testing y permitir la escalabilidad. Cada pieza del código tiene un lugar predecible.
+**Última Revisión**: 14 de Diciembre, 2025
 
-## 2. Estructura de Directorios (`src/`)
+---
 
-### 📂 `models/` (La Capa de Datos)
+## 1. Patrón Arquitectónico: Layered REST
 
-- **Responsabilidad**: Definir la estructura de la base de datos (Schemas de Mongoose).
-- **Ejemplos**: `User`, `Game`, `Order`.
-- **Regla**: Solo aquí se habla directamente con MongoDB.
+Mantenemos una separación estricta de responsabilidades (SoC).
 
-### 📂 `controllers/` (La Capa de Entrada)
+### 📍 Capa de Transporte (Controllers)
 
-- **Responsabilidad**: Manejar la petición HTTP (`req`) y la respuesta (`res`).
-- **Ejemplos**: `auth.controller.ts`, `game.controller.ts`.
-- **Regla**: Los controladores deben ser "tontos". No deben tener lógica de negocio compleja, solo validar datos, llamar al servicio y responder.
+- **Regla**: "Thin Controllers". No contienen lógica.
+- **Responsabilidad**: HTTP I/O (Request/Response).
+- **Herramienta**: `asyncHandler` para eliminar boilerplate de `try/catch`.
 
-### 📂 `services/` (La Capa de Negocio)
+### 🧠 Capa de Negocio (Services)
 
-- **Responsabilidad**: La lógica real de la aplicación.
-- **Ejemplos**: `auth.service.ts` (hashing, tokens), `game-aggregator.service.ts` (mezclar APIs).
-- **Regla**: Aquí es donde ocurre la magia. Los servicios son independientes de HTTP (no saben qué es `req` o `res`), lo que facilita su testeo unitario.
+- **Regla**: "Agnóstico del Transporte". No sabe qué es Express ni HTTP.
+- **Responsabilidad**: Reglas de negocio, Validaciones complejas, Integración externa.
+- **Novedad (Dic 2025)**: **Strict Typing**.
+  - Usamos `mongoose.mongo.Filter<T>` para construir queries. Esto garantiza que el compilador nos alerte si intentamos filtrar por un campo imaginario.
 
-### 📂 `routes/` (El Enrutador)
+### 🗄️ Capa de Datos (Models)
 
-- **Responsabilidad**: Definir las URLs y asignarles controladores y middlewares.
-- **Ejemplos**: `user.routes.ts` (`GET /profile` -> `authMiddleware` -> `getProfile`).
+- **Regla**: "Rich Models".
+- **Responsabilidad**: Esquema, Validaciones de DB, Índices.
 
-### 📂 `middleware/` (Los Guardianes)
+---
 
-- **Responsabilidad**: Ejecutar código antes de llegar al controlador.
-- **Ejemplos**: `auth.middleware.ts` (verifica tokens), `error.middleware.ts` (manejo centralizado de errores).
+## 2. Stack Tecnológico (Evolución)
 
-### 📂 `scripts/` (Automatización)
+- **Runtime**: Node.js + TypeScript (Configurado en modo `strict`).
+- **DB**: MongoDB + Mongoose 9.0.
+  - _Decisión_: Mongoose 9 introdujo cambios en los tipos. Adaptamos la estrategia usando tipos nativos del driver (`mongoose.mongo`) para mantener la seguridad de tipos.
+- **Logger**: Winston.
+  - _Decisión_: Reemplazar `console.log` para tener logs JSON estructurados aptos para producción.
+- **Validación**: Zod.
+  - _Decisión_: Validación "Fail-Fast" en middleware.
 
-- **Responsabilidad**: Tareas de mantenimiento, migración y carga de datos fuera del ciclo de vida HTTP.
-- **Ejemplos**: `import-pc-games.ts`, `seed.ts`.
+---
 
-## 3. Patrones Utilizados
+## 3. Diagrama de Flujo de Datos
 
-### 🏭 Service Pattern
+```mermaid
+graph LR
+    Client -->|JSON| Middleware[🛡️ Zod/Auth]
+    Middleware -->|DTO| Controller[📍 Controller]
+    Controller -->|Typed Args| Service[🧠 Service]
+    Service -->|Filter<T>| Model[🗄️ Mongoose]
+    Model -->|Doc| DB
+```
 
-Separamos la lógica (Service) del transporte (Controller). Esto nos permite, por ejemplo, llamar a `createGame` desde una API REST hoy, y desde un script de consola mañana, reutilizando el mismo servicio.
+---
 
-### 💉 Dependency Injection (Manual)
+## 4. Auditoría de Salud
 
-Aunque no usamos un contenedor IoC complejo, nuestros servicios son modulares y se importan donde se necesitan, manteniendo el acoplamiento bajo.
+El sistema ha pasado una auditoría completa de "Deuda Técnica".
 
-### 🛡️ Repository Pattern (Simplificado con Mongoose)
-
-Mongoose actúa como nuestro ORM/Repository, abstrayendo las consultas SQL/NoSQL en métodos fáciles (`findById`, `create`).
-
-### 🔌 Adapter/Facade Pattern (Integraciones)
-
-Los servicios `rawg.service.ts` y `steam.service.ts` actúan como adaptadores que "traducen" las APIs externas complejas a un formato simple que nuestra aplicación entiende.
-
-## 4. Stack Tecnológico
-
-- **Runtime**: Node.js
-- **Lenguaje**: TypeScript (Tipado estático para robustez)
-- **Framework**: Express.js
-- **Base de Datos**: MongoDB (con Mongoose)
-- **Testing**: Jest + Supertest
-- **Validación**: **Zod** (Schema Validation)
+- **Estado**: Limpio.
+- **Pruebas**: 100% Passing.
+- **Documentación**: Sincronizada con el código.

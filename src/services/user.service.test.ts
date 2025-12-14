@@ -12,18 +12,13 @@ import User from "../models/user.model";
 import Game from "../models/game.model";
 import { AppError } from "../utils/AppError";
 
-// Mock models
-jest.mock("../models/user.model");
-jest.mock("../models/game.model");
-
-const mockUserId = "507f1f77bcf86cd799439011";
-const mockGameId = "507f1f77bcf86cd799439012";
-const mockGameId2 = "507f1f77bcf86cd799439013";
-
 describe("User Service", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks(); // Restore original implementations
   });
+
+  const mockUserId = "507f1f77bcf86cd799439011";
+  const mockGameId = "507f1f77bcf86cd799439012";
 
   describe("addToWishlist", () => {
     it("should add game to wishlist if user and game exist and not duplicate", async () => {
@@ -34,8 +29,8 @@ describe("User Service", () => {
       } as any;
       const mockGame = { _id: mockGameId } as any;
 
-      (User.findById as jest.Mock).mockResolvedValue(mockUser);
-      (Game.findById as jest.Mock).mockResolvedValue(mockGame);
+      jest.spyOn(User, "findById").mockResolvedValue(mockUser);
+      jest.spyOn(Game, "findById").mockResolvedValue(mockGame);
 
       const result = await addToWishlist(mockUserId, mockGameId);
 
@@ -47,7 +42,7 @@ describe("User Service", () => {
     });
 
     it("should throw error if user not found", async () => {
-      (User.findById as jest.Mock).mockResolvedValue(null);
+      jest.spyOn(User, "findById").mockResolvedValue(null);
 
       await expect(addToWishlist(mockUserId, mockGameId)).rejects.toThrow(
         new AppError("User not found", 404)
@@ -55,8 +50,10 @@ describe("User Service", () => {
     });
 
     it("should throw error if game not found", async () => {
-      (User.findById as jest.Mock).mockResolvedValue({ _id: mockUserId });
-      (Game.findById as jest.Mock).mockResolvedValue(null);
+      jest
+        .spyOn(User, "findById")
+        .mockResolvedValue({ _id: mockUserId } as any);
+      jest.spyOn(Game, "findById").mockResolvedValue(null);
 
       await expect(addToWishlist(mockUserId, mockGameId)).rejects.toThrow(
         new AppError("Game not found", 404)
@@ -68,8 +65,10 @@ describe("User Service", () => {
         _id: mockUserId,
         wishlist: [mockGameId],
       } as any;
-      (User.findById as jest.Mock).mockResolvedValue(mockUser);
-      (Game.findById as jest.Mock).mockResolvedValue({ _id: mockGameId });
+      jest.spyOn(User, "findById").mockResolvedValue(mockUser);
+      jest
+        .spyOn(Game, "findById")
+        .mockResolvedValue({ _id: mockGameId } as any);
 
       await expect(addToWishlist(mockUserId, mockGameId)).rejects.toThrow(
         new AppError("Game already in wishlist", 400)
@@ -81,22 +80,22 @@ describe("User Service", () => {
     it("should remove game from wishlist", async () => {
       const mockUser = {
         _id: mockUserId,
-        wishlist: [mockGameId, mockGameId2],
+        wishlist: ["otherGameId", mockGameId],
         save: jest.fn(),
       } as any;
 
-      (User.findById as jest.Mock).mockResolvedValue(mockUser);
+      jest.spyOn(User, "findById").mockResolvedValue(mockUser);
 
       const result = await removeFromWishlist(mockUserId, mockGameId);
 
       expect(mockUser.wishlist).toHaveLength(1);
-      expect(mockUser.wishlist[0]).toBe(mockGameId2);
+      expect(mockUser.wishlist[0]).toBe("otherGameId");
       expect(mockUser.save).toHaveBeenCalled();
       expect(result.message).toBe("Game removed from wishlist");
     });
 
     it("should throw error if user not found", async () => {
-      (User.findById as jest.Mock).mockResolvedValue(null);
+      jest.spyOn(User, "findById").mockResolvedValue(null);
 
       await expect(removeFromWishlist(mockUserId, mockGameId)).rejects.toThrow(
         new AppError("User not found", 404)
@@ -111,23 +110,25 @@ describe("User Service", () => {
         wishlist: [{ title: "Game 1" }, { title: "Game 2" }],
       } as any;
 
-      const mockPopulate = jest.fn().mockResolvedValue(mockUser);
-      (User.findById as jest.Mock).mockReturnValue({
-        populate: mockPopulate,
-      });
+      // Mock chainable populate
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(mockUser),
+      } as any;
+
+      jest.spyOn(User, "findById").mockReturnValue(mockQuery);
 
       const result = await getWishlist(mockUserId);
 
       expect(User.findById).toHaveBeenCalledWith(mockUserId);
-      expect(mockPopulate).toHaveBeenCalledWith("wishlist");
+      expect(mockQuery.populate).toHaveBeenCalledWith("wishlist");
       expect(result).toHaveLength(2);
     });
 
     it("should throw error if user not found", async () => {
-      const mockPopulate = jest.fn().mockResolvedValue(null);
-      (User.findById as jest.Mock).mockReturnValue({
-        populate: mockPopulate,
-      });
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(null),
+      } as any;
+      jest.spyOn(User, "findById").mockReturnValue(mockQuery);
 
       await expect(getWishlist(mockUserId)).rejects.toThrow(
         new AppError("User not found", 404)

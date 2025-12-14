@@ -1,86 +1,84 @@
-# 🧪 Testing Strategy & Implementation Log
+# 🧪 Log de Pruebas y Estrategia de QA
 
-## 1. Filosofía de Testing
+Este documento registra la evolución, estrategia y estado actual del sistema de pruebas del backend.
 
-En este proyecto, hemos adoptado una estrategia de **"Confianza Total"**. No buscamos el 100% de cobertura de líneas por vanidad, sino cubrir el 100% de los **casos de uso críticos**. Si los tests pasan, el despliegue a producción debe ser seguro.
+**Última Actualización**: 14 de Diciembre, 2025
+**Estado Global**: 🟢 103/103 Tests Pasando
 
-## 2. Stack Tecnológico
+---
 
-- **Jest**: Framework principal (Runner, Assertions, Mocks).
-- **Supertest**: Para peticiones HTTP reales a nuestra API Express (Integration Testing).
-- **MongoMemoryServer** (Opcional/Configurable): Para bases de datos efímeras durante los tests, aunque en este entorno usamos una BD de test dedicada en Atlas para mayor realismo.
+## 1. Filosofía de Testing: "Robustez sobre Fragilidad"
 
-## 3. Tipos de Tests Implementados
+Hemos migrado recientemente de `jest.mock` a `jest.spyOn`.
 
-### A. Unit Testing (Pruebas Unitarias)
+### ❌ El Pasado (`jest.mock`)
 
-- **Objetivo**: Probar funciones aisladas sin dependencias externas.
-- **Ejemplo**: `auth.service.test.ts`
-  - Probamos que la función de hashing genere strings diferentes.
-  - Probamos que la validación de contraseñas falle con inputs incorrectos.
-  - **Mocking**: Simulamos la base de datos para no tocar la real.
+Antiguamente, usábamos `jest.mock('../models/user')` al principio de los archivos.
 
-### B. Integration Testing (Pruebas de Integración)
+- **Problema**: Jest "eleva" (hoisting) los mocks antes de que se ejecute cualquier código. Esto hacía que los tests fueran muy sensibles al orden de los imports y difíciles de depurar.
+- **Fragilidad**: Si cambiabas el nombre de una exportación, el mock silenciosamente fallaba o se rompía el test suite entero.
 
-- **Objetivo**: Probar que las piezas (Rutas -> Controladores -> Servicios -> BD) funcionen juntas.
-- **Ejemplo**: `auth.routes.test.ts`
-  - Enviamos un `POST /register` real con Supertest.
-  - Verificamos que responda `201 Created`.
-  - Verificamos que devuelva un JWT válido.
-  - Verificamos que el usuario realmente se haya creado en MongoDB.
+### ✅ El Presente (`jest.spyOn`)
 
-### C. End-to-End (E2E) / Flujos Completos
+Ahora interceptamos las llamadas en el momento de la ejecución.
 
-- **La Joya de la Corona**: `tests/integration/full-flow.test.ts`
-- Simula una sesión de usuario completa:
-  1. Usuario se registra.
-  2. Hace Login y obtiene token.
-  3. Busca un juego.
-  4. Añade el juego a su biblioteca.
-  5. Borra su cuenta.
-- Este test garantiza que el sistema funciona como un todo coherente.
+```typescript
+// Patrón Estándar Actual
+jest.spyOn(User, "findById").mockResolvedValue(mockUser);
+// ... ejecución ...
+expect(User.findById).toHaveBeenCalledWith(id);
+```
 
-## 4. Estrategias Clave
+- **Ventaja**: Mantiene el contrato de tipos de TypeScript. Si el método no existe en el Modelo, el test no compila.
+- **Limpieza**: Usamos `afterEach(() => jest.restoreAllMocks())` para garantizar que un test no contamine al siguiente.
 
-### 🛡️ Fail-Fast
+---
 
-Los tests verifican las variables de entorno (`.env`) al inicio. Si falta la conexión a Mongo o la API Key de RAWG, fallan inmediatamente antes de intentar nada, ahorrando tiempo de depuración.
+## 2. Cobertura de la Suite
 
-### 🧹 Limpieza Automática (Teardown)
+### A. Integración (Routes)
 
-Usamos los hooks `beforeAll` y `afterAll` de Jest para:
+Simulamos peticiones HTTP reales usando `supertest`.
 
-- Conectar a la BD antes de empezar.
-- Limpiar las colecciones (borrar usuarios de test) al terminar.
-- Cerrar conexiones para evitar que Jest se quede colgado (Open Handles).
+- **Auth**: Registro, Login, Refresh Token Rotation.
+- **Game**: CRUD completo, Búsqueda con filtros, Upload de imágenes.
+- **Collection**: Gestión de librería personal.
+- **Payment**:Flujo de simulación de compra.
 
-### 🎭 Mocking de APIs Externas
+### B. Unitarios (Services)
 
-Para evitar depender de que RAWG o Steam estén online (y para no gastar cuota de API), en muchos tests simulamos sus respuestas.
+Aislamos la lógica de negocio.
 
-- Si pedimos "GTA V", nuestro Mock devuelve un JSON fijo predecible.
-- Esto hace que los tests sean **rápidos** y **deterministas**.
+- **GameService**: Verificación de filtros estrictos (`mongoose.mongo.Filter`).
+- **PaymentService**: Cálculo de totales y generación de licencias.
+- **AuthService**: Hashing de contraseñas y lógica de tokens.
 
-## 5. Resumen de Cobertura y Métricas (Actualizado)
+### C. Seguridad y Middlewares
 
-Contamos con una suite robusta de **85 tests** que garantizan la estabilidad del sistema:
+- **RoleMiddleware**: Intenta acceder a rutas de admin siendo usuario normal (debe dar 403).
+- **ZodMiddleware**: Envía JSONs malformados (debe dar 400 con detalles).
 
-- **Tests de Integración (Routes)**: Verifican flujos HTTP completos (`/register`, `/checkout`, `/games`).
-- **Tests de Lógica (Services)**: Validan reglas de negocio complejas y cálculos.
-- **Tests de Seguridad**: Roles, validación de tokens y manejo de errores.
+---
 
-### 🏆 Hitos de Calidad
+## 3. Comandos de Ejecución
 
-1. **Global Setup**: Implementación de `tests/setup.ts` para gestión eficiente de conexiones MongoDB.
-2. **100% Pass Rate**: Todos los tests de Auth, Catálogo, Pagos y Usuarios pasan en CI/CD local.
-3. **Cobertura de Casos Borde**: Manejo de 404s, 401s, y errores de validación.
+Para correr la suite completa:
 
-### Desglose de Tests Principales
+```bash
+npm test
+```
 
-- `auth.*`: Login, Registro, Refresh Token.
-- `catalog.*` / `game.*`: CRUD de juegos, Búsqueda pública.
-- `order.integration`: Flujo completo de compra y pagos simulados.
-- `collection.service`: Lógica de biblioteca de usuario.
-- `validation.test.ts`: Validación estricta de DTOs con Zod.
-- `auth.refresh.test.ts`: Seguridad de rotación de tokens.
-- `user.delete.test.ts`: Integridad referencial (Cascade Delete).
+Para correr un archivo específico (útil al desarrollar):
+
+```bash
+npm test -- src/services/game.service.test.ts
+```
+
+---
+
+## 4. Historial de Mejoras
+
+- **Fase 1**: Tests básicos de rutas.
+- **Fase 2**: Integración completa de Auth.
+- **Fase 3 (Refactorización)**: Migración masiva a `spyOn` y corrección de "Open Handles" (conexiones de DB que no se cerraban).
+- **Fase 4 (Strict Types)**: Actualización de tests para soportar `mongoose.mongo.Filter`.

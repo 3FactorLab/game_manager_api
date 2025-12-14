@@ -4,7 +4,6 @@
  * Handles retrieval of user order history.
  */
 import Order from "../models/order.model";
-import { AppError } from "../utils/AppError";
 
 /**
  * Retrieves all orders for a specific user.

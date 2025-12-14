@@ -3,7 +3,7 @@
  * @description Controller for handling payment requests.
  * Delegates logic to PaymentService.
  */
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import * as paymentService from "../services/payment.service";
 import { CreateCheckoutSessionDto } from "../dtos/payment.dto";

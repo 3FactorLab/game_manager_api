@@ -40,7 +40,7 @@ describe("Wishlist Integration Tests", () => {
       genre: "Adventure",
       platform: "Switch",
       price: 49.99,
-      releaseDate: new Date(),
+      released: new Date(),
     });
     gameId = game._id.toString();
   });

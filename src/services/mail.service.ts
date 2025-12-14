@@ -4,7 +4,7 @@
  * Supports sending purchase confirmations with professional HTML templates.
  */
 import nodemailer from "nodemailer";
-import { AppError } from "../utils/AppError";
+import logger from "../utils/logger";
 
 // Environment variables should be loaded
 const SMTP_HOST = process.env.SMTP_HOST || "smtp.ethereal.email";
@@ -65,16 +65,16 @@ export const sendPurchaseConfirmation = async (
       html: htmlContent,
     });
 
-    console.log("Message sent: %s", info.messageId);
+    logger.info(`Message sent: ${info.messageId}`);
     // Preview only available when sending through an Ethereal account
-    // console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    // logger.debug("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 
     return info;
   } catch (error) {
-    console.error("Error sending email:", error);
+    logger.error(`Error sending email: ${error}`);
     // Don't block the flow if email fails, just log it.
     // In a real app we might want to retry or queue it.
-    console.warn("Could not send email. Verify SMTP configuration.");
+    logger.warn("Could not send email. Verify SMTP configuration.");
   }
 };
 
