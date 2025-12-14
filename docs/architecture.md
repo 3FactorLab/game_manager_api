@@ -236,6 +236,55 @@ Para facilitar la lectura, hemos codificado los componentes por colores según s
 - 🟢 **Verde (Datos)**: Modelos de Mongoose y la Base de Datos MongoDB.
 - 🟠 **Naranja (Auxiliares)**: Servicios de soporte como Cron y FileService.
 
+### 📐 Vista Simplificada (Overview)
+
+Para una comprensión rápida del flujo general, aquí está la versión simplificada:
+
+```mermaid
+flowchart LR
+    %% Nodos principales
+    Client([👤 Cliente])
+    DB[(🗄️ MongoDB)]
+    External[☁️ APIs Externas]
+
+    %% Capas simplificadas
+    Entry["🚪 Entrada<br/>(Routes + Docs)"]
+    Pipeline["🛡️ Pipeline<br/>(Auth + Role + Validator)"]
+    Controller["🤵 Controllers<br/>(HTTP Handlers)"]
+    Services["🧠 Servicios<br/>(Core + Integration + Auxiliary)"]
+    Models["💾 Modelos<br/>(User + Game + Order + etc)"]
+
+    %% Flujo principal
+    Client -->|1. Request| Entry
+    Entry -->|2. Middleware Chain| Pipeline
+    Pipeline -->|3. Validated| Controller
+    Controller -->|4. Business Logic| Services
+    Services -->|5. Data Access| Models
+    Models <-->|6. DB Ops| DB
+
+    %% Integraciones
+    Services <-.->|API Calls| External
+
+    %% Retorno
+    Services -->|7. Response| Controller
+    Controller -->|8. JSON| Client
+
+    %% Estilos
+    style Client fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px,color:#F57F17
+    style DB fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#1B5E20
+    style External fill:#E1BEE7,stroke:#8E24AA,stroke-width:2px,color:#4A148C
+    style Entry fill:#FFFFFF,stroke:#333,stroke-width:2px,color:#212121
+    style Pipeline fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#B71C1C
+    style Controller fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1
+    style Services fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#01579B
+    style Models fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20
+```
+
+> [!TIP] > **Cuándo usar cada diagrama**:
+>
+> - **Diagrama Completo** (arriba): Para análisis técnico detallado, debugging, y entender conexiones específicas entre servicios y modelos
+> - **Vista Simplificada** (aquí): Para presentaciones, onboarding de nuevos desarrolladores, y comprensión rápida del flujo de datos
+
 ---
 
 ## 📂 Estructura del Proyecto
