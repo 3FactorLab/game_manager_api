@@ -42,11 +42,23 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 // Endpoint: GET /api/games
 // Parses query parameters for filtering and pagination.
 export const search = asyncHandler(async (req: Request, res: Response) => {
-  const { query, page, limit, genre, platform, sortBy, order } = req.query;
+  const {
+    query,
+    page,
+    limit,
+    genre,
+    platform,
+    sortBy,
+    order,
+    onSale,
+    maxPrice,
+  } = req.query;
 
   // Validation is handled by Zod middleware
   const pageNum = page ? parseInt(page as string) : 1;
   const limitNum = limit ? parseInt(limit as string) : 10;
+  const isOnSale = onSale === "true";
+  const maxPriceNum = maxPrice ? parseFloat(maxPrice as string) : undefined;
 
   const result = await searchGames(
     (query as string) || "",
@@ -55,7 +67,9 @@ export const search = asyncHandler(async (req: Request, res: Response) => {
     genre as string,
     platform as string,
     sortBy as string,
-    order as "asc" | "desc"
+    order as "asc" | "desc",
+    isOnSale ? true : undefined,
+    maxPriceNum
   );
   res.json(result);
 });

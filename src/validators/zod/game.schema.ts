@@ -54,7 +54,15 @@ export const searchGameSchema = z.object({
   genre: z.string().trim().optional(),
   platform: z.string().trim().optional(),
   sortBy: z
-    .enum(["price", "releaseDate", "title", "genre", "platform", "score"])
+    .enum([
+      "price",
+      "releaseDate",
+      "title",
+      "genre",
+      "platform",
+      "score",
+      "discount",
+    ])
     .optional(),
   order: z.enum(["asc", "desc"]).optional(),
 });

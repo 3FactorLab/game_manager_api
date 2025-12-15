@@ -17,7 +17,9 @@ export const searchGames = async (
   genre?: string,
   platform?: string,
   sortBy: string = "releaseDate",
-  order: "asc" | "desc" = "desc"
+  order: "asc" | "desc" = "desc",
+  onSale?: boolean,
+  maxPrice?: number
 ) => {
   // Use strict MongoDB filter type for safety during construction
   const filter: mongoose.mongo.Filter<IGame> = {};
@@ -38,6 +40,13 @@ export const searchGames = async (
   // Exact filters
   if (genre) filter.genre = genre;
   if (platform) filter.platform = platform;
+  if (onSale) filter.onSale = true;
+
+  // Price range filter
+  if (maxPrice !== undefined) {
+    // Explicitly cast to any to avoid complex Mongoose Filter types on numeric fields
+    (filter as any).price = { $lte: maxPrice };
+  }
 
   const skip = (page - 1) * limit;
 
