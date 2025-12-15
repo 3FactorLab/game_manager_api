@@ -24,6 +24,7 @@ import {
 import {
   extractSteamAppId,
   getSteamGameDetails,
+  searchSteamGames,
 } from "../services/steam.service";
 
 dotenv.config();
@@ -68,15 +69,16 @@ const runImport = async () => {
     logger.info(`📚 Database contains ${existingDocs.length} games.`);
 
     // Genre Quotas to achieve balance (Total ~200)
+    // Target Genres for Horror Expansion
     const GENRE_TARGETS = [
-      { slug: "sports", target: 40, name: "Sports" },
-      { slug: "racing", target: 30, name: "Racing" },
-      { slug: "simulation", target: 30, name: "Simulation" },
-      { slug: "strategy", target: 30, name: "Strategy" },
-      { slug: "role-playing-games-rpg", target: 20, name: "RPG" },
-      { slug: "puzzle", target: 20, name: "Puzzle" },
-      { slug: "fighting", target: 20, name: "Fighting" },
-      { slug: "platformer", target: 10, name: "Platformer" },
+      { slug: "horror", name: "Horror", target: 30 },
+      // { slug: "sports", name: "Sports", target: 40 },
+      // { slug: "racing", name: "Racing", target: 40 },
+      // { slug: "simulation", name: "Simulation", target: 40 },
+      // { slug: "strategy", name: "Strategy", target: 30 },
+      // { slug: "puzzle", name: "Puzzle", target: 20 },
+      // { slug: "fighting", name: "Fighting", target: 20 },
+      // { slug: "platformer", name: "Platformer", target: 10 },
     ];
 
     let totalImported = 0;
@@ -141,26 +143,73 @@ const runImport = async () => {
               // 2. Fetch Screenshots
               const screenshots = await getScreenshots(candidate.rawgId);
 
-              // 3. Fetch Steam Price
+              // 3. Fetch Steam Price (STRICT MODE)
               let steamAppId: number | null = null;
+              let priceData = {
+                price: 0,
+                currency: "USD",
+                discount: 0,
+                onSale: false,
+                originalPrice: 0,
+              };
 
-              // Find Steam store URL in stores array
+              // A. Try direct link from RAWG
               const steamStore = details.stores.find((s) =>
                 s.url.includes("store.steampowered.com")
               );
+              if (steamStore) steamAppId = extractSteamAppId(steamStore.url);
 
-              if (steamStore) {
-                steamAppId = extractSteamAppId(steamStore.url);
-              } else if (
+              if (
+                !steamAppId &&
                 details.website &&
                 details.website.includes("store.steampowered.com")
               ) {
                 steamAppId = extractSteamAppId(details.website);
               }
 
-              let steamData = null;
-              if (steamAppId) {
-                steamData = await getSteamGameDetails(steamAppId);
+              // B. Fallback: Search Steam by Title (Smart Fix)
+              if (!steamAppId) {
+                try {
+                  steamAppId = await searchSteamGames(details.name);
+                  if (steamAppId)
+                    logger.info(
+                      `      🔄 Found via Steam Search: ${steamAppId}`
+                    );
+                } catch (e) {
+                  // ignore
+                }
+              }
+
+              // C. Strict Check: If no Steam ID, SKIP
+              if (!steamAppId) {
+                logger.warn(
+                  `      ❌ Skipping ${details.name} (No Steam ID found)`
+                );
+                continue;
+              }
+
+              // D. Fetch Price & Validate
+              const steamDetails = await getSteamGameDetails(steamAppId);
+
+              if (steamDetails && steamDetails.price_overview) {
+                priceData = {
+                  price: steamDetails.price_overview.final / 100,
+                  currency: steamDetails.price_overview.currency,
+                  discount: steamDetails.price_overview.discount_percent,
+                  onSale: steamDetails.price_overview.discount_percent > 0,
+                  originalPrice: steamDetails.price_overview.initial / 100,
+                };
+              } else if (steamDetails && steamDetails.is_free) {
+                // Free to play is acceptable as "Priced 0"
+                priceData.price = 0;
+              } else {
+                // Verify if it's REALLY just missing price (Delisted)
+                // User requested "games with price".
+                // If we can't get price data, and it's not marked free, assume delisted.
+                logger.warn(
+                  `      ❌ Skipping ${details.name} (Steam ID found but no price/delisted)`
+                );
+                continue;
               }
 
               // 4. Map Payload
@@ -180,15 +229,11 @@ const runImport = async () => {
                 metacritic: details.metacritic,
                 rawgId: details.rawgId,
                 steamAppId: steamAppId,
-                price: steamData?.price_overview?.final
-                  ? steamData.price_overview.final / 100
-                  : 0,
-                originalPrice: steamData?.price_overview?.initial
-                  ? steamData.price_overview.initial / 100
-                  : 0,
-                discount: steamData?.price_overview?.discount_percent || 0,
-                currency: steamData?.price_overview?.currency || "USD",
-                onSale: (steamData?.price_overview?.discount_percent || 0) > 0,
+                price: priceData.price,
+                originalPrice: priceData.originalPrice,
+                discount: priceData.discount,
+                currency: priceData.currency,
+                onSale: priceData.onSale,
               };
 
               const dbPayload = {

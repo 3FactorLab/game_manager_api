@@ -30,6 +30,7 @@ interface SteamGameData {
   name: string;
   header_image: string;
   price_overview?: SteamPriceOverview;
+  is_free?: boolean;
   developers?: string[];
   publishers?: string[];
   genres?: Array<{ description: string }>;

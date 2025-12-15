@@ -146,7 +146,11 @@ export const fetchPopularPCGames = async (
     };
 
     if (genres) {
-      params.genres = genres;
+      if (genres === "horror") {
+        params.tags = genres;
+      } else {
+        params.genres = genres;
+      }
     }
 
     const response = await rawgClient.get("/games", {
