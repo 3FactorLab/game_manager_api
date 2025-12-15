@@ -22,19 +22,19 @@ import { asyncHandler } from "../utils/asyncHandler";
 // Endpoint: POST /api/games
 // Handles file upload for game cover image.
 export const create = asyncHandler(async (req: Request, res: Response) => {
-  // Nota: Podríamos restringir esto a admins, pero por ahora lo dejamos abierto
+  // Note: We could restrict this to admins, but leaving open for now
   const gameData: CreateGameDto = req.body;
 
-  // Si se subió un archivo, usar su ruta local
+  // If a file was uploaded, use its local path
   if (req.file) {
     gameData.image = `${req.protocol}://${req.get("host")}/uploads/${
       req.file.filename
     }`;
   }
-  // Si no hay archivo, se usará gameData.image si viene en el body (URL externa)
+  // If no file, gameData.image will be used if provided in body (external URL)
 
   const game = await createCatalogGame(gameData);
-  res.status(201).json({ message: "Juego añadido al catálogo", game });
+  res.status(201).json({ message: "Game added to catalog", game });
 });
 
 // Search games
@@ -52,6 +52,8 @@ export const search = asyncHandler(async (req: Request, res: Response) => {
     order,
     onSale,
     maxPrice,
+    developer,
+    publisher,
   } = req.query;
 
   // Validation is handled by Zod middleware
@@ -69,7 +71,9 @@ export const search = asyncHandler(async (req: Request, res: Response) => {
     sortBy as string,
     order as "asc" | "desc",
     isOnSale ? true : undefined,
-    maxPriceNum
+    maxPriceNum,
+    developer as string,
+    publisher as string
   );
   res.json(result);
 });

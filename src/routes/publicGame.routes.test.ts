@@ -19,7 +19,7 @@ describe("Public Games API", () => {
       {
         title: "Cyberpunk 2077",
         genre: "RPG",
-        platform: "PC",
+        platforms: ["PC"],
         developer: "CD Projekt Red",
         publisher: "CD Projekt",
         price: 59.99,
@@ -29,7 +29,7 @@ describe("Public Games API", () => {
       {
         title: "The Witcher 3",
         genre: "RPG",
-        platform: "PS5",
+        platforms: ["PS5"],
         developer: "CD Projekt Red",
         publisher: "CD Projekt",
         price: 39.99,
@@ -39,7 +39,7 @@ describe("Public Games API", () => {
       {
         title: "Stardew Valley",
         genre: "Simulation",
-        platform: "Switch",
+        platforms: ["Switch"],
         developer: "ConcernedApe",
         publisher: "ConcernedApe",
         price: 14.99,
@@ -49,7 +49,7 @@ describe("Public Games API", () => {
       {
         title: "Celeste",
         genre: "Platformer",
-        platform: "Switch",
+        platforms: ["Switch"],
         developer: "Maddy Makes Games",
         publisher: "Maddy Makes Games",
         price: 19.99,

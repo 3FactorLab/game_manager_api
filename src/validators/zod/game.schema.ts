@@ -65,6 +65,15 @@ export const searchGameSchema = z.object({
     ])
     .optional(),
   order: z.enum(["asc", "desc"]).optional(),
+  maxPrice: z
+    .preprocess(
+      (val) => Number(val),
+      z.number().min(0, "Price must be positive")
+    )
+    .optional(),
+  onSale: z.enum(["true", "false"]).optional(),
+  developer: z.string().trim().optional(),
+  publisher: z.string().trim().optional(),
 });
 
 /**
