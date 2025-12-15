@@ -34,7 +34,7 @@ export const getCompleteGameData = async (
       description: rawgData.description,
       image: rawgData.cover,
       genre: rawgData.genres[0] || "Unknown",
-      platform: rawgData.platforms[0] || "Unknown",
+      platforms: rawgData.platforms || ["Unknown"],
       developer: rawgData.developers[0],
       publisher: rawgData.publishers[0],
       score: rawgData.rating ? Math.round(rawgData.rating * 2) : undefined,

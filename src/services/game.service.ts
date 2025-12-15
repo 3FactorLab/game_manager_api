@@ -33,7 +33,7 @@ export const searchGames = async (
       { genre: regex },
       { developer: regex },
       { publisher: regex },
-      { platform: regex },
+      { platforms: regex },
     ];
   }
 
@@ -85,7 +85,7 @@ export const searchGames = async (
 // Helper method for the frontend to populate filter dropdowns
 export const getFilters = async () => {
   const genres = await Game.distinct("genre");
-  const platforms = await Game.distinct("platform");
+  const platforms = await Game.distinct("platforms");
   return {
     genres: genres.filter(Boolean).sort(),
     platforms: platforms.filter(Boolean).sort(),
@@ -98,10 +98,10 @@ export const getFilters = async () => {
 export const createCatalogGame = async (
   gameData: Partial<IGame>
 ): Promise<IGame> => {
-  const { title, platform } = gameData;
+  const { title } = gameData;
 
   // Verificar si ya existe
-  const existingGame = await Game.findOne({ title, platform });
+  const existingGame = await Game.findOne({ title });
   if (existingGame) {
     return existingGame;
   }
