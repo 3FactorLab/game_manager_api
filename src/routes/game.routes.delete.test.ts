@@ -57,10 +57,10 @@ describe("DELETE /api/games/:id", () => {
   beforeEach(async () => {
     const game = await Game.create({
       title: "Game to Delete",
-      genre: "Test",
-      platform: "Test",
-      developer: "Test Dev",
-      publisher: "Test Pub",
+      genre: "Action",
+      platforms: ["PC"],
+      price: 10,
+      released: new Date(),
     });
     gameId = game._id.toString();
   });

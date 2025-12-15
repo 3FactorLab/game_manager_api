@@ -38,7 +38,7 @@ describe("Wishlist Integration Tests", () => {
     const game = await Game.create({
       title: `Wishlist Game ${uniqueSuffix}`,
       genre: "Adventure",
-      platform: "Switch",
+      platforms: ["Switch"],
       price: 49.99,
       released: new Date(),
     });

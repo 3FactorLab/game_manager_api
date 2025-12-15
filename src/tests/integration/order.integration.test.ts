@@ -37,18 +37,20 @@ describe("Order & Payment Integration Tests", () => {
 
     // Create Games
     const game1 = await Game.create({
-      title: "Order Test Game 1",
+      title: "Game 1",
       genre: "Action",
-      platform: "PC",
+      platforms: ["PC"],
       price: 10,
       currency: "USD",
+      released: new Date(),
     });
     const game2 = await Game.create({
-      title: "Order Test Game 2",
+      title: "Game 2",
       genre: "RPG",
-      platform: "PC",
+      platforms: ["PS5"],
       price: 20,
       currency: "USD",
+      released: new Date(),
     });
     gameIds = [game1._id.toString(), game2._id.toString()];
   });

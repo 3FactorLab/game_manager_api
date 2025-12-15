@@ -54,10 +54,10 @@ describe("PUT /api/games/:id", () => {
   beforeEach(async () => {
     const game = await Game.create({
       title: "Game to Update",
-      genre: "Test",
-      platform: "Test",
-      developer: "Test Dev",
-      publisher: "Test Pub",
+      genre: "Action",
+      platforms: ["PC"],
+      price: 20,
+      released: new Date(),
     });
     gameId = game._id.toString();
   });

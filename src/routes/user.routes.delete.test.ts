@@ -86,11 +86,11 @@ describe("DELETE /api/users/:id", () => {
     const uniqueSuffix = Date.now();
     // 1. Create a game
     const game = await Game.create({
-      title: `Cascade Test Game ${uniqueSuffix}`,
-      genre: "Test",
-      platform: "Test",
-      developer: "Dev",
-      publisher: "Pub",
+      title: "User Game",
+      genre: "Action",
+      platforms: ["PC"],
+      price: 60,
+      released: new Date(),
     });
 
     // 2. Add game to user's collection
