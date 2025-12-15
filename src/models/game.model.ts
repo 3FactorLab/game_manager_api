@@ -15,7 +15,7 @@ export interface IGame {
   // Core game information
   title: string;
   genre: string;
-  platform: string;
+  platforms: string[];
   developer?: string;
   publisher?: string;
   image?: string;
@@ -63,10 +63,10 @@ const gameSchema: Schema = new Schema({
     required: true,
     trim: true,
   },
-  platform: {
-    type: String,
+  platforms: {
+    type: [String],
     required: true,
-    trim: true,
+    default: [],
   },
   developer: {
     type: String,
@@ -166,7 +166,7 @@ gameSchema.index(
     genre: "text",
     developer: "text",
     publisher: "text",
-    platform: "text",
+    platforms: "text",
   },
   {
     weights: {
@@ -174,7 +174,7 @@ gameSchema.index(
       genre: 5,
       developer: 3,
       publisher: 3,
-      platform: 1,
+      platforms: 1,
     },
     name: "GameTextIndex",
   }
@@ -182,10 +182,10 @@ gameSchema.index(
 
 /**
  * Unique Constraint Index
- * Prevents duplicate games in the catalog based on title + platform combination.
- * Same game title can exist for different platforms (e.g., "Elden Ring" on PC and PS5).
+ * Prevents duplicate games in the catalog based on title.
+ * Same game entry now contains all its platforms.
  */
-gameSchema.index({ title: 1, platform: 1 }, { unique: true });
+gameSchema.index({ title: 1 }, { unique: true });
 
 // Exported to controllers and services for game catalog operations
 const Game = mongoose.model<GameDocument>("Game", gameSchema);
