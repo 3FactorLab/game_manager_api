@@ -10,6 +10,31 @@ import { getGameDetails as getRAWGDetails, GameDetails } from "./rawg.service";
 import { getSteamGameDetails, extractSteamAppId } from "./steam.service";
 
 /**
+ * Complete game data interface combining RAWG and Steam data
+ * Destination: Returned by getCompleteGameData for game creation.
+ */
+interface CompleteGameData {
+  title: string;
+  description: string;
+  image: string;
+  genre: string;
+  platforms: string[];
+  developer?: string;
+  publisher?: string;
+  score?: number;
+  released?: Date;
+  metacritic: number;
+  screenshots: string[];
+  rawgId: number;
+  steamAppId?: number;
+  price?: number;
+  currency?: string;
+  discount?: number;
+  onSale?: boolean;
+  originalPrice?: number;
+}
+
+/**
  * Get complete game data by combining RAWG and Steam APIs
  * Destination: Used by game.controller.ts createFromRAWG endpoint.
  *
@@ -19,7 +44,7 @@ import { getSteamGameDetails, extractSteamAppId } from "./steam.service";
 export const getCompleteGameData = async (
   rawgId: number,
   steamAppId?: number
-) => {
+): Promise<CompleteGameData> => {
   try {
     // Get data from RAWG
     const rawgData: GameDetails = await getRAWGDetails(rawgId);
@@ -29,7 +54,7 @@ export const getCompleteGameData = async (
     }
 
     // Initialize complete game data with RAWG info
-    const completeData: any = {
+    const completeData: CompleteGameData = {
       title: rawgData.name,
       description: rawgData.description,
       image: rawgData.cover,
@@ -38,7 +63,7 @@ export const getCompleteGameData = async (
       developer: rawgData.developers[0],
       publisher: rawgData.publishers[0],
       score: rawgData.rating ? Math.round(rawgData.rating * 2) : undefined,
-      released: rawgData.released,
+      released: rawgData.released ? new Date(rawgData.released) : undefined,
       metacritic: rawgData.metacritic,
       screenshots: [],
       rawgId: rawgData.rawgId,

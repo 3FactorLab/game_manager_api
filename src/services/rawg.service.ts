@@ -47,6 +47,28 @@ interface RAWGScreenshot {
   image: string;
 }
 
+// RAWG API game object from search/list endpoints
+interface RAWGGameListItem {
+  id: number;
+  name: string;
+  background_image: string;
+  rating: number;
+  platforms?: RAWGPlatform[];
+  genres?: RAWGGenre[];
+  released: string;
+  metacritic: number;
+}
+
+// RAWG API params for fetchPopularPCGames
+interface RAWGFetchParams {
+  platforms: number;
+  ordering: string;
+  page: number;
+  page_size: number;
+  tags?: string;
+  genres?: string;
+}
+
 export interface GameDetails {
   rawgId: number;
   name: string;
@@ -96,7 +118,7 @@ export const searchGames = async (query: string, limit = 10) => {
       },
     });
 
-    const results = response.data.results.map((game: any) => ({
+    const results = response.data.results.map((game: RAWGGameListItem) => ({
       rawgId: game.id,
       name: game.name,
       cover: game.background_image,
@@ -138,7 +160,7 @@ export const fetchPopularPCGames = async (
   }
 
   try {
-    const params: any = {
+    const params: RAWGFetchParams = {
       platforms: 4, // PC
       ordering: "-added", // Most added to collections (Popularity)
       page: page,
@@ -157,7 +179,7 @@ export const fetchPopularPCGames = async (
       params,
     });
 
-    const results = response.data.results.map((game: any) => ({
+    const results = response.data.results.map((game: RAWGGameListItem) => ({
       rawgId: game.id,
       title: game.name,
       // Minimal data for list, full details fetched later
