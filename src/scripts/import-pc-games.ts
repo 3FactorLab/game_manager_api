@@ -24,6 +24,7 @@ import {
 import {
   extractSteamAppId,
   getSteamGameDetails,
+  searchSteamGames,
 } from "../services/steam.service";
 
 dotenv.config();
@@ -55,7 +56,8 @@ const runImport = async () => {
     let importedCount = 0;
     let page = 1;
     let processedRawgIds = new Set<number>();
-    const newGamesCollection: Partial<IGame>[] = [];
+
+    const newGamesCollection: any[] = [];
 
     // Load existing RAWG IDs from DB to filter duplicates efficiently
     const existingDocs = await Game.find({}, { rawgId: 1, title: 1 });
@@ -66,114 +68,220 @@ const runImport = async () => {
 
     logger.info(`📚 Database contains ${existingDocs.length} games.`);
 
-    while (importedCount < TARGET_NEW_GAMES && page <= MAX_PAGES) {
-      logger.info(`\n📄 Fetching Page ${page} from RAWG...`);
+    // Genre Quotas to achieve balance (Total ~200)
+    // Target Genres for Horror Expansion
+    const GENRE_TARGETS = [
+      { slug: "horror", name: "Horror", target: 30 },
+      // { slug: "sports", name: "Sports", target: 40 },
+      // { slug: "racing", name: "Racing", target: 40 },
+      // { slug: "simulation", name: "Simulation", target: 40 },
+      // { slug: "strategy", name: "Strategy", target: 30 },
+      // { slug: "puzzle", name: "Puzzle", target: 20 },
+      // { slug: "fighting", name: "Fighting", target: 20 },
+      // { slug: "platformer", name: "Platformer", target: 10 },
+    ];
 
-      const candidates = await fetchPopularPCGames(page, PAGE_SIZE);
+    let totalImported = 0;
 
-      for (const candidate of candidates) {
-        if (importedCount >= TARGET_NEW_GAMES) break;
+    for (const genreDef of GENRE_TARGETS) {
+      let genreImported = 0;
+      let page = 1;
+      let fails = 0;
 
-        // SKIP if already exists in DB
-        if (
-          existingRawgIds.has(candidate.rawgId) ||
-          existingTitles.has(candidate.title.toLowerCase())
-        ) {
-          process.stdout.write("."); // Compact progress for skips
-          continue;
-        }
+      logger.info(
+        `\n🎯 TARGETING GENRE: ${genreDef.name} (Goal: ${genreDef.target} new games)`
+      );
 
-        // SKIP if we already processed this ID in this run (handling overlaps)
-        if (processedRawgIds.has(candidate.rawgId)) continue;
-
-        processedRawgIds.add(candidate.rawgId);
-
-        logger.info(
-          `\n🔍 Processing NEW candidate: ${candidate.title} (ID: ${candidate.rawgId})`
-        );
-
+      while (
+        genreImported < genreDef.target &&
+        page <= MAX_PAGES &&
+        fails < 3
+      ) {
         try {
-          // 1. Fetch Full Details from RAWG
-          // Add delay to respect rate limits (approx 1 request per sec)
-          await delay(800);
-          const details = await getGameDetails(candidate.rawgId);
-          const screenshots = await getScreenshots(candidate.rawgId);
+          logger.info(`   📄 Fetching Page ${page} for ${genreDef.name}...`);
 
-          // 2. Steam Integration (Pricing)
-          let steamData: any = null;
-          let steamAppId: number | null = null;
-
-          // Try to find Steam URL in stores
-          const steamStore = details.stores.find((s) =>
-            s.url.includes("store.steampowered.com")
+          const candidates = await fetchPopularPCGames(
+            page,
+            PAGE_SIZE,
+            genreDef.slug
           );
 
-          if (steamStore) {
-            steamAppId = extractSteamAppId(steamStore.url);
-            if (steamAppId) {
-              await delay(500); // Delay for Steam API
-              steamData = await getSteamGameDetails(steamAppId);
+          if (!candidates || candidates.length === 0) {
+            logger.warn(`   ⚠️ No more candidates for ${genreDef.name}`);
+            break;
+          }
+
+          for (const candidate of candidates) {
+            if (genreImported >= genreDef.target) break;
+
+            // Global Deduplication
+            if (
+              existingRawgIds.has(candidate.rawgId) ||
+              existingTitles.has(candidate.title.toLowerCase()) ||
+              processedRawgIds.has(candidate.rawgId)
+            ) {
+              process.stdout.write(".");
+              continue;
+            }
+
+            processedRawgIds.add(candidate.rawgId);
+
+            logger.info(
+              `   🔍 Processing NEW ${genreDef.name}: ${candidate.title} (ID: ${candidate.rawgId})`
+            );
+
+            try {
+              // 1. Fetch Details
+              await delay(800); // 1.2s delay for safety
+              const details = await getGameDetails(candidate.rawgId);
+
+              if (!details) {
+                process.stdout.write("x");
+                continue;
+              }
+
+              // 2. Fetch Screenshots
+              const screenshots = await getScreenshots(candidate.rawgId);
+
+              // 3. Fetch Steam Price (STRICT MODE)
+              let steamAppId: number | null = null;
+              let priceData = {
+                price: 0,
+                currency: "USD",
+                discount: 0,
+                onSale: false,
+                originalPrice: 0,
+              };
+
+              // A. Try direct link from RAWG
+              const steamStore = details.stores.find((s) =>
+                s.url.includes("store.steampowered.com")
+              );
+              if (steamStore) steamAppId = extractSteamAppId(steamStore.url);
+
+              if (
+                !steamAppId &&
+                details.website &&
+                details.website.includes("store.steampowered.com")
+              ) {
+                steamAppId = extractSteamAppId(details.website);
+              }
+
+              // B. Fallback: Search Steam by Title (Smart Fix)
+              if (!steamAppId) {
+                try {
+                  steamAppId = await searchSteamGames(details.name);
+                  if (steamAppId)
+                    logger.info(
+                      `      🔄 Found via Steam Search: ${steamAppId}`
+                    );
+                } catch (e) {
+                  // ignore
+                }
+              }
+
+              // C. Strict Check: If no Steam ID, SKIP
+              if (!steamAppId) {
+                logger.warn(
+                  `      ❌ Skipping ${details.name} (No Steam ID found)`
+                );
+                continue;
+              }
+
+              // D. Fetch Price & Validate
+              const steamDetails = await getSteamGameDetails(steamAppId);
+
+              if (steamDetails && steamDetails.price_overview) {
+                priceData = {
+                  price: steamDetails.price_overview.final / 100,
+                  currency: steamDetails.price_overview.currency,
+                  discount: steamDetails.price_overview.discount_percent,
+                  onSale: steamDetails.price_overview.discount_percent > 0,
+                  originalPrice: steamDetails.price_overview.initial / 100,
+                };
+              } else if (steamDetails && steamDetails.is_free) {
+                // Free to play is acceptable as "Priced 0"
+                priceData.price = 0;
+              } else {
+                // Verify if it's REALLY just missing price (Delisted)
+                // User requested "games with price".
+                // If we can't get price data, and it's not marked free, assume delisted.
+                logger.warn(
+                  `      ❌ Skipping ${details.name} (Steam ID found but no price/delisted)`
+                );
+                continue;
+              }
+
+              // 4. Map Payload
+              const objectId = new mongoose.Types.ObjectId();
+
+              const basePayload = {
+                title: details.name,
+                description: details.description || "",
+                developer: details.developers[0] || "Unknown",
+                publisher: details.publishers[0] || "Unknown",
+                genre: details.genres[0] || "Action",
+                platform: "PC",
+                released: new Date(details.released),
+                image: details.cover,
+                screenshots: screenshots.slice(0, 6),
+                score: details.rating ? Math.round(details.rating * 2) : 0,
+                metacritic: details.metacritic,
+                rawgId: details.rawgId,
+                steamAppId: steamAppId,
+                price: priceData.price,
+                originalPrice: priceData.originalPrice,
+                discount: priceData.discount,
+                currency: priceData.currency,
+                onSale: priceData.onSale,
+              };
+
+              const dbPayload = {
+                ...basePayload,
+                id: objectId,
+                _id: objectId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              };
+
+              const jsonPayload = {
+                _id: objectId.toString(),
+                ...basePayload,
+              };
+
+              // 5. Action
+              if (isCommit) {
+                await Game.updateOne(
+                  { rawgId: dbPayload.rawgId },
+                  { $set: dbPayload },
+                  { upsert: true }
+                );
+                logger.info(`     ✅ Saved: ${dbPayload.title}`);
+                newGamesCollection.push(jsonPayload);
+              } else {
+                logger.info(
+                  `     📝 [Dry Run]: ${jsonPayload.title} ($${jsonPayload.price})`
+                );
+                newGamesCollection.push(jsonPayload);
+              }
+
+              genreImported++;
+              totalImported++;
+            } catch (err: any) {
+              // Explicitly type err as any
+              logger.error(`     ❌ Skip ${candidate.title}: ${err.message}`); // Access err.message
             }
           }
-
-          // 3. Map to IGame Schema
-          const gamePayload: any = {
-            title: details.name,
-            description: details.description || "",
-            developer: details.developers[0] || "Unknown",
-            publisher: details.publishers[0] || "Unknown",
-            genre: details.genres[0] || "Action", // Validation: First genre as string
-            platform: "PC", // Validation: Fixed to PC
-            released: new Date(details.released),
-            image: details.cover,
-            screenshots: screenshots.slice(0, 6), // Limit to 6
-            score: details.rating ? Math.round(details.rating * 2) : 0, // 0-5 to 0-10
-            metacritic: details.metacritic,
-            rawgId: details.rawgId,
-            steamAppId: steamAppId,
-            // Steam Pricing
-            price: steamData?.price_overview?.final
-              ? steamData.price_overview.final / 100
-              : 0,
-            originalPrice: steamData?.price_overview?.initial
-              ? steamData.price_overview.initial / 100
-              : 0,
-            discount: steamData?.price_overview?.discount_percent || 0,
-            currency: steamData?.price_overview?.currency || "USD",
-            onSale: (steamData?.price_overview?.discount_percent || 0) > 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-
-          // 4. Action
-          if (isCommit) {
-            // Upsert to DB
-            await Game.updateOne(
-              { rawgId: gamePayload.rawgId },
-              { $set: gamePayload },
-              { upsert: true }
-            );
-            logger.info(`✅ Upserted to DB: ${gamePayload.title}`);
-
-            // Add to list for JSON file
-            newGamesCollection.push(gamePayload);
-          } else {
-            logger.info(
-              `📝 [Dry Run] Prepared: ${gamePayload.title} | Price: ${gamePayload.price}`
-            );
-            newGamesCollection.push(gamePayload);
-          }
-
-          importedCount++;
+          page++;
         } catch (err: any) {
-          logger.error(
-            `❌ Failed to process ${candidate.title}: ${err.message}`
-          );
-          // Continue to next candidate
+          // Explicitly type err as any
+          logger.error(`   ❌ Error fetching page ${page}: ${err.message}`); // Access err.message
+          fails++;
         }
       }
-
-      page++;
+      logger.info(
+        `✅ Finished ${genreDef.name}: Added ${genreImported} games.\n`
+      );
     }
 
     // FINISHING UP

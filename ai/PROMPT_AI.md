@@ -33,6 +33,10 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
 - Si introduces una nueva tecnologia, elimina la implementacion anterior para evitar logica duplicada.
 - No quiero que se borre la base de datos al crear tests. nunca uses deleteMany({}) si va a crear borrados innecesarios de la base de datos.
 - **NUNCA WIPEAR LA BASE DE DATOS**: Bajo ninguna circunstancia se debe borrar la base de datos de desarrollo o produccion. Los tests deben correr en un entorno aislado.
+- **Creación de Tests (OBLIGATORIO)**:
+  - Siempre que se cree una nueva lógica, se deben crear los tests correspondientes (Unitarios/Integración).
+  - Si los tests ya existen, verificar si necesitan ser actualizados, especialmente al realizar refactorización o cambios de lógica.
+  - No dar por terminada una tarea sin verificar que los tests asociados pasen.
 
 ## 4. Organizacion y mantenimiento
 
@@ -78,8 +82,13 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
   - **OBLIGATORIO**: Usar `src/utils/logger.ts` (Winston). `logger.info()`, `logger.error()`.
 
 - **Mongoose 9+ (Strict Typing)**:
+
   - Al definir filtros de búsqueda, tipar explícitamente con `mongoose.mongo.Filter<T>` para evitar uso de `any` inseguro.
   - Ejemplo: `const filter: mongoose.mongo.Filter<IUser> = { ... }`.
+
+- **Verificación de Dependencias (Seguridad)**:
+  - **OBLIGATORIO**: Antes de usar "importar" cualquier librería, verificar siempre `package.json` para confirmar que está instalada.
+  - **PROHIBIDO**: Asumir que una librería existe o usar librerías no listadas en `dependencies` o `devDependencies`.
 
 ## 9. Arquitectura y Patrones
 

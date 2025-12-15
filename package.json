@@ -8,7 +8,11 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit",
+<<<<<<< HEAD
     "seed": "ts-node src/seeds/seed.ts",
+=======
+    "seed": "npx ts-node src/seeds/seed.ts",
+>>>>>>> 4bd8a87b722460668bf5b4fd2cfa415b34223b53
     "update-screenshots": "ts-node src/scripts/update-screenshots.ts"
   },
   "keywords": [],
