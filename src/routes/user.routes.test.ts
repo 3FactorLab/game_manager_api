@@ -88,9 +88,9 @@ describe("Wishlist Integration Tests", () => {
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body.wishlist)).toBe(true);
-      expect(res.body.wishlist.length).toBe(1);
-      expect(res.body.wishlist[0]).toHaveProperty(
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.pagination.total).toBe(1);
+      expect(res.body.data[0]).toHaveProperty(
         "title",
         `Wishlist Game ${uniqueSuffix}`
       );
@@ -113,7 +113,7 @@ describe("Wishlist Integration Tests", () => {
         .get("/api/users/wishlist")
         .set("Authorization", `Bearer ${userToken}`);
 
-      expect(res.body.wishlist.length).toBe(0);
+      expect(res.body.pagination.total).toBe(0);
     });
   });
 });

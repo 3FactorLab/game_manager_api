@@ -106,11 +106,11 @@ describe("Catalog & Collection Integration Tests", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.items.length).toBe(1);
-    expect(res.body.total).toBe(1);
-    expect(res.body.page).toBe(1);
-    expect(res.body.items[0].game.title).toBe("Elden Ring"); // Populated field
-    expect(res.body.items[0].hoursPlayed).toBe(10);
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.pagination.total).toBe(1);
+    expect(res.body.pagination.page).toBe(1);
+    expect(res.body.data[0].game.title).toBe("Elden Ring"); // Populated field
+    expect(res.body.data[0].hoursPlayed).toBe(10);
   });
 
   test("GET /api/collection should filter by status", async () => {
@@ -119,15 +119,15 @@ describe("Catalog & Collection Integration Tests", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.items.length).toBe(1);
-    expect(res.body.items[0].status).toBe("playing");
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].status).toBe("playing");
   });
 
   test("PUT /api/collection/:id should update my progress", async () => {
     const collection = await request(app)
       .get("/api/collection")
       .set("Authorization", `Bearer ${token}`);
-    const itemId = collection.body.items[0]._id;
+    const itemId = collection.body.data[0]._id;
 
     const res = await request(app)
       .put(`/api/collection/${itemId}`)

@@ -37,25 +37,27 @@ export const addToCollection = async (
 export const getCollection = async (
   userId: string,
   page: number = 1,
-  limit: number = 10,
+  limit: number = 12,
+  query?: string,
   status?: string,
   genre?: string,
-  platform?: string
+  platform?: string,
+  sortBy?: string,
+  order?: "asc" | "desc"
 ) => {
-  const skip = (page - 1) * limit;
+  // Page validation - clamp to valid range
+  const validPage = Math.max(1, page);
+  const skip = (validPage - 1) * limit;
 
-  // Use strict strict MongoDB filter type
+  // Use strict MongoDB filter type
   const filter: mongoose.mongo.Filter<IUserGame> = {
     user: new mongoose.Types.ObjectId(userId),
   };
   if (status) filter.status = status as any;
 
-  // Para filtrar por campos del juego populado, necesitamos usar aggregate o filtrar después.
-  // Mongoose populate 'match' filtra los juegos, pero no elimina el documento UserGame (deja game: null).
-  // La mejor opción eficiente es usar aggregate.
-
+  // Aggregation pipeline for efficient filtering and pagination
   const pipeline: PipelineStage[] = [
-    { $match: filter as any }, // Filtra por user y status (cast needed for Mongoose 9)
+    { $match: filter as any }, // Filter by user and status first (performance)
     {
       $lookup: {
         from: "games",
@@ -67,28 +69,52 @@ export const getCollection = async (
     { $unwind: "$game" },
   ];
 
-  if (genre) pipeline.push({ $match: { "game.genre": genre } });
-  if (platform) pipeline.push({ $match: { "game.platform": platform } });
+  // Text search on game fields
+  if (query) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { "game.title": { $regex: query, $options: "i" } },
+          { "game.publisher": { $regex: query, $options: "i" } },
+          { "game.developer": { $regex: query, $options: "i" } },
+        ],
+      },
+    });
+  }
 
-  // Contar total antes de paginar
+  // Filter by game properties
+  if (genre) pipeline.push({ $match: { "game.genre": genre } });
+  if (platform) pipeline.push({ $match: { "game.platforms": platform } });
+
+  // Count total BEFORE pagination
   const countPipeline = [...pipeline, { $count: "total" }];
   const totalResult = await UserGame.aggregate(countPipeline);
   const total = totalResult.length > 0 ? totalResult[0].total : 0;
+  const totalPages = Math.ceil(total / limit);
 
-  // Ordenar por fecha de actualización (más recientes primero)
-  pipeline.push({ $sort: { updatedAt: -1 } });
+  // Clamp page to valid range
+  const clampedPage = Math.min(validPage, totalPages || 1);
 
-  // Paginar
-  pipeline.push({ $skip: skip });
+  // Deterministic sorting (always include _id for consistency)
+  const sortField = sortBy || "updatedAt";
+  const sortOrder = order === "asc" ? 1 : -1;
+  pipeline.push({ $sort: { [sortField]: sortOrder, _id: 1 } });
+
+  // Pagination with clamped page
+  pipeline.push({ $skip: (clampedPage - 1) * limit });
   pipeline.push({ $limit: limit });
 
   const items = await UserGame.aggregate(pipeline);
 
+  // Return format matching Catalog pattern
   return {
-    items,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
+    data: items,
+    pagination: {
+      total,
+      pages: totalPages,
+      page: clampedPage,
+      limit,
+    },
   };
 };
 

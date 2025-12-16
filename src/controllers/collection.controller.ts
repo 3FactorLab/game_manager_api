@@ -32,21 +32,34 @@ export const addToCollection = asyncHandler(
 
 // Destination: Used in src/routes/collection.routes.ts (GET /).
 // Endpoint: GET /api/collection
-// Retrieves the user's collection with optional filters.
+// Retrieves the user's collection with pagination, search, and filters.
 export const getCollection = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.userData!.id;
-    const { page, limit, status, genre, platform } = req.query;
-    const pageNum = parseInt(page as string) || 1;
-    const limitNum = parseInt(limit as string) || 10;
+    const { page, limit, query, status, genre, platform, sortBy, order } =
+      req.query;
+
+    const params = {
+      page: parseInt(page as string) || 1,
+      limit: parseInt(limit as string) || 12,
+      query: query as string,
+      status: status as string,
+      genre: genre as string,
+      platform: platform as string,
+      sortBy: sortBy as string,
+      order: order as "asc" | "desc",
+    };
 
     const collection = await getCollectionService(
       userId,
-      pageNum,
-      limitNum,
-      status as string,
-      genre as string,
-      platform as string
+      params.page,
+      params.limit,
+      params.query,
+      params.status,
+      params.genre,
+      params.platform,
+      params.sortBy,
+      params.order
     );
     res.json(collection);
   }

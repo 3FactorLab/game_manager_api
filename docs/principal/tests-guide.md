@@ -42,6 +42,15 @@ O incluso filtrar por nombre del test:
 npx jest -t "should register a new user"
 ```
 
+### 🧠 Estándares de Testing (Zero-Fragility)
+
+Para evitar tests frágiles, seguimos estas reglas estrictas:
+
+- **Mocks vs Spies**:
+  - **Módulos Internos (Servicios/Modelos)**: **OBLIGATORIO** usar `jest.spyOn(Object, 'method')`. Esto mantiene el tipado y evita problemas de hoisting. **PROHIBIDO** usar `jest.mock()`.
+  - **Dependencias Externas (axios, bcrypt)**: **PERMITIDO** usar `jest.mock()`.
+- **Limpieza**: Los tests deben ser atómicos. Usamos `afterEach(() => jest.restoreAllMocks())`.
+
 ---
 
 ## 2. Estructura de los Tests (`tests/`)

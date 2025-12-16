@@ -76,12 +76,14 @@ describe("Collection Service", () => {
         .mockResolvedValueOnce(mockCountResult) // For count pipeline
         .mockResolvedValueOnce(mockItems); // For data pipeline
 
-      const result = await getCollection(mockUserId, 1, 10);
+      const result = await getCollection(mockUserId, 1, 12);
 
       expect(aggregateSpy).toHaveBeenCalledTimes(2);
-      expect(result.items).toEqual(mockItems);
-      expect(result.total).toBe(1);
-      expect(result.page).toBe(1);
+      expect(result.data).toEqual(mockItems);
+      expect(result.pagination.total).toBe(1);
+      expect(result.pagination.page).toBe(1);
+      expect(result.pagination.pages).toBe(1);
+      expect(result.pagination.limit).toBe(12);
     });
   });
 

@@ -38,8 +38,13 @@ router.use(checkAuth);
  *         name: limit
  *         schema:
  *           type: integer
- *           default: 10
+ *           default: 12
  *         description: Items per page
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Search by game title
  *       - in: query
  *         name: status
  *         schema:
@@ -55,15 +60,33 @@ router.use(checkAuth);
  *         schema:
  *           type: string
  *         description: Filter by platform
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *         description: Sort field
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
  *     responses:
  *       200:
- *         description: List of user games
+ *         description: Paginated list of user games
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/UserGame'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/UserGame'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
  *       401:
  *         description: Unauthorized
  *         content:

@@ -72,19 +72,20 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
 
 - **Testing Strategy (Zero-Fragility)**:
 
-  - **PROHIBIDO**: Usar `jest.mock()` para módulos internos (Services/Models) debido a problemas de hoisting.
-  - **OBLIGATORIO**: Usar `jest.spyOn(Object, 'method')`. Esto intercepta la llamada real y mantiene el tipado.
-  - **Limpieza**: Usar siempre `afterEach(() => jest.restoreAllMocks())`.
+  - **Módulos Internos**: **PROHIBIDO** usar `jest.mock()` para servicios o modelos propios. **OBLIGATORIO** usar `jest.spyOn(Object, 'method')` para mantener tipado y evitar problemas de hoisting.
+  - **Dependencias Externas**: **PERMITIDO** usar `jest.mock()` para librerías externas (ej: `axios`, `bcrypt`, `node-cache`, `logger`).
+  - **Limpieza**: Usar siempre `restorMocks: true` en config o `afterEach(() => jest.restoreAllMocks())`.
 
 - **Logging (Observabilidad)**:
 
   - **PROHIBIDO**: `console.log` o `console.error` en código de producción (Services/Controllers).
   - **OBLIGATORIO**: Usar `src/utils/logger.ts` (Winston). `logger.info()`, `logger.error()`.
 
-- **Mongoose 9+ (Strict Typing)**:
+- **Type Safety (Strict)**:
 
-  - Al definir filtros de búsqueda, tipar explícitamente con `mongoose.mongo.Filter<T>` para evitar uso de `any` inseguro.
-  - Ejemplo: `const filter: mongoose.mongo.Filter<IUser> = { ... }`.
+  - **NO ANY TYPES**: Prohibido el uso de `any` en código de producción.
+  - **Error Middleware**: Debe usar Union Types (`Error | AppError | MongooseError`) y Type Guards, nunca `any`.
+  - **Mongoose**: Tipar explícitamente filtros con `mongoose.mongo.Filter<T>`.
 
 - **Verificación de Dependencias (Seguridad)**:
   - **OBLIGATORIO**: Antes de usar "importar" cualquier librería, verificar siempre `package.json` para confirmar que está instalada.
@@ -97,3 +98,25 @@ Este documento define las reglas y expectativas para la IA asistente integrada e
   - **Services**: Contienen toda la lógica de negocio. Son agnósticos de HTTP (no reciben `req` ni `res`).
 - **Manejo de Errores Async**: Todas las funciones asíncronas en controladores deben usar `asyncHandler` (`src/utils`). No usar `try/catch` manual en controladores.
 - **DTOs**: Usar interfaces DTO (`src/dtos`) para tipar datos de entrada/salida. Evitar `any` en controladores y servicios.
+
+## 10. API Standards (Standardization)
+
+- **Paginación (List Endpoints)**:
+
+  - Estructura de respuesta obligatoria:
+    ```typescript
+    {
+      data: T[],
+      pagination: {
+        total: number,
+        pages: number,
+        page: number,
+        limit: number
+      }
+    }
+    ```
+  - Parámetros query estándar: `page`, `limit`, `sortBy`, `order`, `query` (search).
+  - **NOTA IMPORTANTE**: Cualquier nuevo endpoint que devuelva una lista de entidades DEBE adherirse rigurosamente a este patrón. No devolver arrays planos `[]`.
+
+- **VDD (Validation Driven Development)**:
+  - Cada feature core debe tener su script `scripts/validate-feature.js` que verifique la integridad y reglas de negocio sin intervención manual.

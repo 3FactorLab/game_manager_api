@@ -49,7 +49,7 @@ export const removeFromWishlist = asyncHandler(
 );
 
 /**
- * Get user's wishlist
+ * Get user's wishlist with pagination, search, and filters
  * @route GET /api/users/wishlist
  */
 export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
@@ -59,6 +59,28 @@ export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError("Authentication required", 401);
   }
 
-  const wishlist = await getWishlistService(userId);
-  res.status(200).json({ wishlist });
+  const { page, limit, query, genre, platform, sortBy, order } = req.query;
+
+  const params = {
+    page: parseInt(page as string) || 1,
+    limit: parseInt(limit as string) || 12,
+    query: query as string,
+    genre: genre as string,
+    platform: platform as string,
+    sortBy: sortBy as string,
+    order: order as "asc" | "desc",
+  };
+
+  const result = await getWishlistService(
+    userId,
+    params.page,
+    params.limit,
+    params.query,
+    params.genre,
+    params.platform,
+    params.sortBy,
+    params.order
+  );
+
+  res.status(200).json(result);
 });

@@ -104,31 +104,38 @@ describe("User Service", () => {
   });
 
   describe("getWishlist", () => {
-    it("should return populated wishlist", async () => {
+    it("should return paginated wishlist", async () => {
       const mockUser = {
         _id: mockUserId,
         wishlist: [{ title: "Game 1" }, { title: "Game 2" }],
       } as any;
 
-      // Mock chainable populate
-      const mockQuery = {
+      // Mock for count query
+      const mockCountQuery = {
         populate: jest.fn().mockResolvedValue(mockUser),
       } as any;
 
-      jest.spyOn(User, "findById").mockReturnValue(mockQuery);
+      // Mock for paginated query
+      const mockPaginatedQuery = {
+        populate: jest.fn().mockResolvedValue(mockUser),
+      } as any;
+
+      jest
+        .spyOn(User, "findById")
+        .mockReturnValueOnce(mockUser) // First call for user check
+        .mockReturnValueOnce(mockCountQuery) // Second call for count
+        .mockReturnValueOnce(mockPaginatedQuery); // Third call for paginated data
 
       const result = await getWishlist(mockUserId);
 
       expect(User.findById).toHaveBeenCalledWith(mockUserId);
-      expect(mockQuery.populate).toHaveBeenCalledWith("wishlist");
-      expect(result).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
+      expect(result.pagination.total).toBe(2);
+      expect(result.pagination.page).toBe(1);
     });
 
-    it("should throw error if user not found", async () => {
-      const mockQuery = {
-        populate: jest.fn().mockResolvedValue(null),
-      } as any;
-      jest.spyOn(User, "findById").mockReturnValue(mockQuery);
+    it("should return empty result if user not found", async () => {
+      jest.spyOn(User, "findById").mockResolvedValue(null);
 
       await expect(getWishlist(mockUserId)).rejects.toThrow(
         new AppError("User not found", 404)

@@ -43,15 +43,61 @@ const router = express.Router();
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 12
+ *         description: Items per page
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         description: Search by game title
+ *       - in: query
+ *         name: genre
+ *         schema:
+ *           type: string
+ *         description: Filter by genre
+ *       - in: query
+ *         name: platform
+ *         schema:
+ *           type: string
+ *         description: Filter by platform
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: createdAt
+ *         description: Sort field
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
  *     responses:
  *       200:
  *         description: User wishlist
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Game'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Game'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
  *       401:
  *         description: Unauthorized
  * */

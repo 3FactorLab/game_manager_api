@@ -128,7 +128,7 @@ describe("Integration Test: Full User Journey", () => {
         .get("/api/collection")
         .set("Authorization", `Bearer ${userToken}`);
 
-      const itemId = listRes.body.items[0]._id;
+      const itemId = listRes.body.data[0]._id;
 
       const res = await request(app)
         .put(`/api/collection/${itemId}`)
@@ -165,7 +165,7 @@ describe("Integration Test: Full User Journey", () => {
         .get("/api/collection")
         .set("Authorization", `Bearer ${userToken}`);
 
-      const item = res.body.items.find(
+      const item = res.body.data.find(
         (i: any) => i.game._id === gameId || i.game.title.includes("Flow Game")
       );
       expect(item).toBeDefined();

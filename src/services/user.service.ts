@@ -5,9 +5,9 @@
  * strictly decouples DB operations from HTTP controllers.
  */
 
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import User from "../models/user.model";
-import Game from "../models/game.model";
+import Game, { IGame } from "../models/game.model";
 import { AppError } from "../utils/AppError";
 import { WishlistResponseDto } from "../dtos/user.dto";
 
@@ -87,18 +87,81 @@ export const removeFromWishlist = async (
 };
 
 /**
- * Retrieves the user's wishlist.
- * Populates the game details.
+ * Retrieves the user's wishlist with server-side pagination and search.
+ * Populates the game details with filtering and sorting support.
  *
  * @param userId - The ID of the user
- * @returns {Promise<any>} Populated wishlist (Game objects)
+ * @param page - Page number (default: 1)
+ * @param limit - Items per page (default: 12)
+ * @param query - Search query for title/publisher/developer
+ * @param genre - Filter by genre
+ * @param platform - Filter by platform
+ * @param sortBy - Sort field (default: 'title')
+ * @param order - Sort order (default: 'asc')
+ * @returns {Promise<any>} Paginated wishlist with pagination metadata
  * @throws {AppError} If user not found
  */
-export const getWishlist = async (userId: string): Promise<any> => {
-  const user = await User.findById(userId).populate("wishlist");
+export const getWishlist = async (
+  userId: string,
+  page: number = 1,
+  limit: number = 12,
+  query?: string,
+  genre?: string,
+  platform?: string,
+  sortBy?: string,
+  order?: "asc" | "desc"
+): Promise<any> => {
+  const user = await User.findById(userId);
   if (!user) {
     throw new AppError("User not found", 404);
   }
 
-  return user.wishlist;
+  // Build filter for populate match
+  const filter: mongoose.mongo.Filter<IGame> = {};
+
+  if (query) {
+    filter.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { publisher: { $regex: query, $options: "i" } },
+      { developer: { $regex: query, $options: "i" } },
+    ];
+  }
+  if (genre) filter.genre = genre;
+  if (platform) filter.platforms = platform;
+
+  // Get total count
+  const totalUser = await User.findById(userId).populate({
+    path: "wishlist",
+    match: filter,
+  });
+  const total = totalUser?.wishlist.length || 0;
+  const totalPages = Math.ceil(total / limit);
+
+  // Clamp page to valid range
+  const validPage = Math.max(1, Math.min(page, totalPages || 1));
+
+  // Get paginated data with sorting
+  const sortField = sortBy || "title";
+  const sortOrder = order === "asc" ? 1 : -1;
+
+  const paginatedUser = await User.findById(userId).populate({
+    path: "wishlist",
+    match: filter,
+    options: {
+      sort: { [sortField]: sortOrder, _id: 1 },
+      skip: (validPage - 1) * limit,
+      limit,
+    },
+  });
+
+  // Return format matching Catalog pattern
+  return {
+    data: paginatedUser?.wishlist || [],
+    pagination: {
+      total,
+      pages: totalPages,
+      page: validPage,
+      limit,
+    },
+  };
 };

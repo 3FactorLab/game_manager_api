@@ -48,6 +48,25 @@ Desde la versión 2.0 (Diciembre 2025), implementamos **Mongoose Strict Typing**
 - **Solución**: Usamos `mongoose.mongo.Filter<T>` en todos los Servicios.
 - **Resultado**: Si intentas filtrar por un campo que no existe en el Modelo, el código **no compila**. Seguridad en tiempo de desarrollo.
 
+- **Error Middleware Tipado**:
+  - Ya no usamos `err: any`. El middleware de errores utiliza Union Types (`Error | AppError | MongooseError`) y Type Guards para manipular errores de forma segura y predecible.
+
+### 6. API Standardization (Pagination)
+
+Para mantener la consistencia en el Frontend, todos los endpoints que devuelven listas siguen estrictamente este contrato:
+
+```typescript
+{
+  data: T[],       // Array de entidades
+  pagination: {    // Metadatos de navegación
+    total: number,
+    pages: number,
+    page: number,
+    limit: number
+  }
+}
+```
+
 ---
 
 ## 📊 Diagrama de Arquitectura (Vista Completa)
