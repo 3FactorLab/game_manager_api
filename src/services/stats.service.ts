@@ -45,9 +45,18 @@ export const getDashboardStatsService = async () => {
   // Aggregate Revenue (Sum of 'totalAmount' in COMPLETED orders)
   const revenueAgg = await Order.aggregate([
     { $match: { status: "completed" } },
-    { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: "$totalAmount" },
+        count: { $sum: 1 },
+      },
+    },
   ]);
   const totalRevenue = revenueAgg[0]?.total || 0;
+  const completedOrdersCount = revenueAgg[0]?.count || 0;
+  const averageOrderValue =
+    completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;
 
   // 2. Top 5 Best Selling Games (by Revenue)
   // We need to unwind items, then group by game title/id
@@ -132,30 +141,45 @@ export const getDashboardStatsService = async () => {
     },
   ]);
 
-  return {
-    kpis: {
-      totalUsers,
-      totalGames,
-      totalOrders,
-      totalRevenue,
+  // 6. Genre Distribution (Catalog)
+  const genreDistribution = await Game.aggregate([
+    { $unwind: "$genres" },
+    {
+      $group: {
+        _id: "$genres",
+        count: { $sum: 1 },
+      },
     },
-    topGames: topSellingGames.map((g) => ({
-      title: g._id as string,
-      revenue: g.revenue as number,
-      sales: g.salesCount as number,
+    { $sort: { count: -1 } },
+    { $limit: 5 },
+  ]);
+
+  return {
+    revenue: totalRevenue,
+    averageOrderValue, // Add AOV
+    topSelling: topSellingGames.map((g: any) => ({
+      _id: g.gameId,
+      title: g._id,
+      totalSold: g.salesCount,
+      revenue: g.revenue,
     })),
-    platforms: platformDistribution.map((p) => ({
-      name: p._id as string,
-      count: p.count as number,
+    monthlyTrends: salesTrend.map((t: any) => ({
+      _id: `${t._id.year}-${String(t._id.month).padStart(2, "0")}`,
+      sales: t.totalSales,
+      revenue: t.totalSales,
     })),
-    salesTrend: salesTrend.map((t) => ({
-      date: `${t._id.month}/${t._id.year}`,
-      sales: t.totalSales as number,
-      orders: t.orderCount as number,
+    // Restore other metrics for frontend usage
+    platforms: platformDistribution.map((p: any) => ({
+      name: p._id,
+      count: p.count,
     })),
-    libraryStats: libraryStats.map((l) => ({
-      title: l.title as string,
-      count: l.count as number,
+    genres: genreDistribution.map((g: any) => ({
+      name: g._id,
+      count: g.count,
+    })),
+    libraryStats: libraryStats.map((l: any) => ({
+      title: l.title,
+      count: l.count,
     })),
   };
 };
