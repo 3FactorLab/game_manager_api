@@ -1,7 +1,7 @@
 /**
  * @file stats.service.ts
- * @description Service responsible for aggregating global statistics.
- * Handles database queries to count users, games, and collections.
+ * @description Service for calculating global and dashboard statistics.
+ * Aggregates data from Users, Games, and Orders collections.
  */
 import UserGame from "../models/userGame.model";
 import User from "../models/user.model";
@@ -11,10 +11,7 @@ import { StatsResponseDto } from "../dtos/stats.dto";
 import logger from "../utils/logger";
 
 /**
- * getGlobalStats
- * Aggregates global counts for users, games, and collections.
- *
- * @returns {Promise<StatsResponseDto>} The aggregated statistics.
+ * Public global stats (existing)
  */
 export const getGlobalStats = async (): Promise<StatsResponseDto> => {
   logger.info("StatsService: Fetching global statistics");
@@ -53,6 +50,7 @@ export const getDashboardStatsService = async () => {
   const totalRevenue = revenueAgg[0]?.total || 0;
 
   // 2. Top 5 Best Selling Games (by Revenue)
+  // We need to unwind items, then group by game title/id
   const topSellingGames = await Order.aggregate([
     { $match: { status: "completed" } },
     { $unwind: "$items" },
@@ -69,6 +67,7 @@ export const getDashboardStatsService = async () => {
   ]);
 
   // 3. Platform Distribution
+  // Games have a "platforms" array of strings
   const platformDistribution = await Game.aggregate([
     { $unwind: "$platforms" },
     {

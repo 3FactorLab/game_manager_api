@@ -3,7 +3,8 @@
  * @description Routes definition for public statistics endpoints.
  */
 import express from "express";
-import { getStats } from "../controllers/stats.controller";
+import { getStats, getDashboardStats } from "../controllers/stats.controller";
+import checkAuth from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -34,6 +35,20 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get("/", getStats);
+router.get("/public", getStats);
+
+/**
+ * @swagger
+ * /api/stats/dashboard:
+ *   get:
+ *     summary: Get admin dashboard statistics
+ *     tags: [Admin Stats]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics
+ */
+router.get("/dashboard", checkAuth, getDashboardStats);
 
 export default router;
