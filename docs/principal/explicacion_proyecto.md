@@ -1,123 +1,143 @@
-# 📘 Explicación del Proyecto: Game Manager API
+# 📖 Explicación del Proyecto (Backend)
 
-¡Hola! 👋 Bienvenido al proyecto. Al ser un programador junior, es normal que al principio ver tantas carpetas abrume un poco, pero verás que este proyecto sigue una estructura muy limpia y estándar en la industria llamada **Arquitectura por Capas** (Layered Architecture).
+> **Proyecto**: Game Manager API
+> **Versión**: 1.0.0 (Production Ready)
+> **Stack**: Node.js, Express, TypeScript Strict, MongoDB
 
-Este documento sirve como guía para entender qué hace cada pieza del engranaje. Dado que la carpeta `logs/` suele estar ignorada por git (para no subir archivos de depuración basura), he colocado esta documentación aquí en `docs/`, que es su lugar natural.
+## 🌟 Resumen Ejecutivo
 
----
+Este backend es una **API RESTful de alto rendimiento** diseñada para servir como el núcleo transaccional y analítico de una plataforma de comercio electrónico.
 
-## 1. ¿Qué es este proyecto?
-
-Es una **API RESTful** construida con **Node.js** y **TypeScript**.
-Su función principal es servir datos a un Frontend (como una web de React o Vue). Gestiona:
-
-- 👥 **Usuarios**: Registro, login, roles (Admin/User).
-- 🎮 **Videojuegos**: Catálogo, precios, géneros.
-- 📦 **Colecciones**: Qué juegos tiene cada usuario y en qué estado (jugando, completado).
+Más allá de un simple CRUD, implementa patrones avanzados de ingeniería de software como **Dependency Injection** (a través de capas), **Strategies** para integración externa, y un motor de **Business Intelligence (BI)** nativo sobre MongoDB Aggregations. Su diseño prioriza la seguridad (Defense in Depth), la escalabilidad y la integridad de datos.
 
 ---
 
-## 2. El Flujo de la Información (Arquitectura)
+## 🏛️ Filosofía de Ingeniería: Los 4 Pilares
 
-Para entender el código, sigue el viaje de un dato desde que entra hasta que se guarda. Usamos el patrón **Controller-Service-Repository (Model)**.
+### 1. Layered Architecture (Separation of Concerns)
 
-1. **Route (Ruta)**: El "router" recibe la petición (ej. `GET /games`). Decide a qué controlador enviarla.
-2. **Middleware** (Opcional): "Porteros" que revisan si tienes permiso o si los datos son válidos antes de dejarte pasar.
-3. **Controller (Controlador)**: Es el "recepcionista". Recibe la petición HTTP (`req`), saca los datos necesarios, y llama al experto (Servicio). **Nunca** hace lógica de negocio compleja, solo orquesta.
-4. **Service (Servicio)**: Es el "experto/cerebro". Aquí están las reglas del negocio, cálculos y la magia de **Integración** (llamadas a APIs como Steam/RAWG).
-5. **Model (Modelo)**: Es el "bibliotecario". Sabe cómo hablar con la Base de Datos (MongoDB) para guardar o recuperar información.
+El sistema implementa una arquitectura estricta de 3 capas para desacoplar responsabilidades y facilitar el testing unitario.
 
----
+- **Routes**: "Entry Layer". Definen endpoints y aplican la cadena de seguridad (Auth -> Role -> Upload -> Validator).
+- **Controllers**: "Dumb layer". Orquestadores HTTP. Extraen datos, llaman al servicio y devuelven respuestas estandarizadas.
+- **Services**: "Smart layer". Núcleo de la lógica de negocio.
+- **Models**: "Persistence layer". Esquemas de Mongoose con validación estricta de datos.
 
-## 3. Estructura de Carpetas (`src/`)
+### 2. Validation Driven Development (VDD)
 
-Aquí te detallo qué encontrarás en cada carpeta dentro de `src`:
+Garantizamos la estabilidad del sistema mediante validación en tiempo de compilación y ejecución.
 
-### 🧱 Core
+- **DTOs & Zod**: Validación estricta de entrada ("Fail-Fast"). Si los datos no son válidos, la ejecución se detiene antes de tocar la lógica.
+- **Strict Typing**: TypeScript configurado en modo estricto. Prohibido el uso de `any` en capas de servicio y base de datos (`mongoose.Filter<T>`).
+- **Scripts de Integridad**: Automatización que audita el código en busca de anti-patrones antes de cada release.
 
-- **`server.ts`**: El "Ejecutor". Inicia la DB y pone al servidor a escuchar (`listen`).
-- **`app.ts`**: La "Fábrica". Configura Express, rutas y seguridad, pero no lo arranca (ideal para tests).
-- **`config/`**: Configuraciones globales. Aquí verás cómo se conecta a MongoDB o cómo se cargan las variables de entorno (`.env`).
+### 3. Híbrido: Transaccional + Analítico
 
-### 🚦 Tráfico y Peticiones
+El backend no solo gestiona transacciones; actúa como un motor de descubrimiento y análisis.
 
-- **`routes/`**: Definen las URLs disponibles (ej. `/api/auth`, `/api/games`).
-- **`controllers/`**: Funciones que reciben `req` y `res`. Su trabajo es responder al cliente "Ok, aquí tienes tus datos" o "Error, algo salió mal".
-- **`dtos/`** (Data Transfer Objects): Son moldes (interfaces de TypeScript) que definen qué datos esperamos recibir o enviar. Ayudan a que no falte información.
-- **`validators/`**: Reglas de validación. Usamos **Zod** para asegurar que los datos sean perfectos ("Fail-Fast").
+- **Discovery Engine**: Sistema de sincronización "Eager Sync" con APIs externas (RAWG/Steam). Importa metadatos bajo demanda, enriqueciendo el catálogo orgánicamente.
+- **Analytics Pipeline**: Utiliza MongoDB Aggregation Framework para calcular KPIs financieros (Revenue, Churn, ARPU) en tiempo real, sin necesidad de herramientas de BI externas.
 
-### 🧠 Lógica y Datos
+### 4. Defense in Depth (Seguridad)
 
-- **`services/`**: La parte más importante. Aquí ocurre la magia. Si hay que calcular un precio, enviar un correo o filtrar juegos, se hace aquí. Evita poner esta lógica en los controladores.
-- **`models/`**: Esquemas de Mongoose. Definen cómo se ven los datos en MongoDB (ej. Un `User` tiene `name`, `email`, `password`).
+La seguridad no es un feature, es la base.
 
-### 🛡️ Seguridad y Utilidades
-
-- **`middleware/`**: Funciones que se ejecutan _antes_ de llegar al controlador.
-  - `auth.ts`: Verifica si el usuario está logueado (Dual Token System: Access + Refresh).
-  - `roles.ts`: Verifica si es Admin.
-- **`utils/`**: Herramientas genéricas (Logger, Bcrypt, AppError).
-
-### 🤖 Automatización
-
-- **`scripts/`**: Programas que corren fuera del servidor. Aquí está el **Importador** de juegos, los **Seeds** para restaurar la DB y los **Validadores** de integridad.
+- **Dual Token Auth**: Rotación de credenciales con Access Tokens de corta vida y Refresh Tokens seguros.
+- **Centralized Error Handling**: Unificación de errores mediante `AppError` y middleware global. Nunca exponemos stack traces en producción.
+- **Audit Logging**: Winston Logger registra eventos críticos para trazabilidad y forense.
 
 ---
 
-## 4. Ejemplo Práctico: "Crear un Usuario"
+## 🛠️ Stack Tecnológico de Vanguardia
 
-Imagina que alguien hace una petición `POST /api/auth/register`. Así fluye por el código:
-
-1. **Server (`server.ts`)** recibe la petición y ve que empieza por `/api/auth`. La manda al router de Auth.
-2. **Router (`routes/auth.routes.ts`)** ve que es `/register` y `POST`.
-   - Primero pasa por el **Validator** (`registerValidator`) para ver si el email es válido.
-   - Si pasa, le entrega el control al **Controller**.
-3. **Controller (`controllers/auth.controller.ts`)** en la función `register()`:
-   - Recoge `email` y `password` del cuerpo de la petición.
-   - Llama a `AuthService.registerUser(email, password)`.
-4. **Service (`services/auth.service.ts`)**:
-   - Comprueba si el email ya existe en la DB.
-   - Encripta la contraseña (hashing).
-   - Crea el usuario usando el **Model**.
-5. **Model (`models/User.ts`)**: Guarda el documento JSON en MongoDB.
-6. **De vuelta**: El Servicio retorna el usuario creado -> El Controlador recibe el usuario y responde con un JSON `201 Created` al cliente.
+| Tecnología             | Rol en el Proyecto  | ¿Por qué esta elección?                                                  |
+| :--------------------- | :------------------ | :----------------------------------------------------------------------- |
+| **Node.js + Express**  | Runtime & Framework | I/O no bloqueante ideal para APIs de alta concurrencia.                  |
+| **TypeScript**         | Lenguaje            | Tipado estático que reduce bugs en runtime en un 15%.                    |
+| **MongoDB (Mongoose)** | Base de Datos       | Flexible schema ideal para almacenar metadatos heterogéneos de juegos.   |
+| **Zod**                | Validación          | Runtime type checking y parsing seguro de esquemas.                      |
+| **Jest / Supertest**   | Testing             | Suite robusta para Unit y Integration testing.                           |
+| **Winston**            | Observability       | Logging estructurado JSON para fácil ingestión en sistemas de monitoreo. |
+| **Compression**        | Performance         | Gzip middleware para reducir el tamaño de respuestas JSON hasta un 70%.  |
 
 ---
 
----
+## 🔄 Flujo de Datos: La Vida de una Petición
 
-## 5. Feature Estrella: Búsqueda Unificada (Discovery) 🌟
+El sistema sigue un pipeline lineal y predecible:
 
-¿Por qué limitarnos a buscar en nuestra base de datos local?
+1.  **Request**: El cliente envía JSON + Token.
+2.  **Middleware Chain**:
+    - `AuthMiddleware`: Verifica JWT.
+    - `RoleMiddleware`: Verifica permisos (Admin).
+    - `ZodValidator`: Valida el payload estáticamente (400 Bad Request si falla).
+3.  **Controller**: Recibe datos **ya validados**. Delega a Servicio.
+4.  **Service**: Ejecuta lógica (CRUD, Cálculos, 3rd Party APIs).
+5.  **Model**: Persiste en MongoDB.
+6.  **Response**: El controlador devuelve JSON 200/201.
 
-Hemos implementado un **Motor de Descubrimiento Híbrido**:
-
-1. **Búsqueda Local**: Instantánea (`<50ms`). Busca en tu catálogo existente.
-2. **Búsqueda Remota**: Si el usuario busca algo que no tenemos, consultamos a la API de RAWG en tiempo real.
-3. **Eager Sync (Sincronización Ansiosa)**: Si encontramos un juego nuevo en la API externa, **lo importamos automáticamente y lo guardamos en tu DB** mientras respondemos al usuario.
-
-**Resultado**: Tu catálogo crece solo, orgánicamente, basado en lo que tus usuarios buscan.
-
-## 6. Dashboard Analytics (Stats) 📊
-
-Para el Admin, hemos creado un cerebro financiero. No hacemos simples "count()". Usamos **Aggregation Pipelines** de MongoDB para calcular en tiempo real:
-
-- 💰 **Ingresos Totales**: Suma de todas las órdenes completadas.
-- 🏆 **Top Selling**: Juegos más vendidos agrupados por cantidad.
-- 📈 **Tendencias**: Ventas agrupadas por mes para ver la evolución del negocio.
-
-Esto convierte al backend en una pequeña herramienta de BI (Business Intelligence).
+_Si ocurre un error en cualquier punto, el `GlobalErrorHandler` lo captura y formatea una respuesta segura._
 
 ---
 
-## 7. Tecnologías que debes conocer aquí
+## 🧠 Flujos de Lógica Crítica
 
-- **Mongoose**: Librería para hablar con MongoDB de forma fácil. Usamos **Strict Typing** para evitar errores.
-- **JWT (Json Web Tokens)**: El "carnet de identidad" digital que usamos para saber quién es quién en cada petición.
-- **Winston**: Nuestro "Caja Negra" (Logger). Registra todo lo que pasa de forma ordenada, nada de `console.log` salvaje.
-- **Zod**: El portero de discoteca. Si tus datos no cumplen las reglas, no pasan.
-- **Swagger**: Si entras a `/api-docs` verás una web para probar la API sin programar nada. ¡Muy útil!
+### 1. Motor de Descubrimiento (External API Sync)
+
+Cuando un administrador busca un juego que no existe localmente:
+
+1.  **Search**: Consulta a la API externa (RAWG).
+2.  **Map**: Transforma la respuesta externa al DTO interno mediante adaptadores.
+3.  **Persist**: Guarda automáticamente el juego en MongoDB para futuras consultas (Cache-Through).
+
+### 2. Sistema de Ventas y Stock
+
+Gestión de concurrencia optimista para compras:
+
+1.  **Validate**: Verifica stock y balance de usuario.
+2.  **Transact**: Ejecuta la orden y decrementa stock atómicamente.
+3.  **Update Stats**: Recalcula KPIs financieros en tiempo real.
 
 ---
 
-¡Ánimo! Es un proyecto muy profesional. Si entiendes este flujo, entenderás el 90% de los backends modernos en Node.js.
+## 🚀 Cómo Empezar (Developer Experience)
+
+El proyecto está docker-ready y configurado para CI/CD local:
+
+1.  **Instalación**:
+
+    ```bash
+    npm install
+    ```
+
+2.  **Entorno**:
+    Configura `.env` basándote en `.env.example`.
+
+3.  **Desarrollo**:
+
+    ```bash
+    npm run dev      # Inicia con ts-node-dev (Hot Reload)
+    ```
+
+4.  **Calidad**:
+
+    ```bash
+    npm test         # Suite completa (120+ tests)
+    npm test         # Suite completa (120+ tests)
+    npm run validate # Script de integridad VDD
+    npm run seed     # Poblar base de datos con datos de prueba
+    ```
+
+5.  **Documentación Viva**:
+    Visita `http://localhost:5000/api-docs` para interactuar con la API mediante **Swagger UI**.
+
+---
+
+## 📚 Mapa de Documentación
+
+Para detalles técnicos profundos, consulte `docs/principal/`:
+
+- 🏗️ **[architecture.md](./architecture.md)**: Diagramas y patrones de diseño backend.
+- 📓 **[tutorial.md](./tutorial.md)**: Guía archivo por archivo del código fuente.
+- 🧪 **[tests-guide.md](./tests-guide.md)**: Estrategia de Mocks, Spies y Tests de Integración.
+- 📜 **[final_info/audit_certificate.md](./final_info/audit_certificate.md)**: Estado de certificación "Production Ready".
