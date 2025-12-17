@@ -96,7 +96,7 @@ export const searchAndSync = async (
           price: completeData.price || 0,
           currency: completeData.currency || "USD",
           platforms: completeData.platforms,
-          genre: completeData.genre || "Unknown",
+          genre: completeData.genres || "Unknown",
           type: "game",
           releaseDate: completeData.released
             ? completeData.released.toISOString()

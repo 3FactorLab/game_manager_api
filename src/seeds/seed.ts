@@ -30,7 +30,16 @@ const seedGames = async () => {
 
     // Optional: Remove _id if you want fresh IDs, or keep them if preserving.
     // Assuming JSON contains valid data.
-    await Game.insertMany(gamesData);
+
+    // Sanitize prices before insertion (fix for 4000 -> 40.00)
+    const sanitizedGames = gamesData.map((g: any) => {
+      if (g.price && g.price > 100) g.price = g.price / 100;
+      if (g.originalPrice && g.originalPrice > 100)
+        g.originalPrice = g.originalPrice / 100;
+      return g;
+    });
+
+    await Game.insertMany(sanitizedGames);
 
     logger.info("✅ Game Catalog Seeded Successfully (No data deleted)!");
     process.exit();
