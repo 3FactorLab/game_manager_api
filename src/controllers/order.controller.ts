@@ -5,7 +5,7 @@
  */
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { getUserOrders } from "../services/order.service";
+import * as orderService from "../services/order.service";
 import { AppError } from "../utils/AppError";
 
 /**
@@ -19,7 +19,19 @@ export const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError("Authentication required", 401);
   }
 
-  const orders = await getUserOrders(userId);
+  const orders = await orderService.getUserOrders(userId);
 
   res.status(200).json(orders);
 });
+
+/**
+ * Get all orders (Admin Only)
+ * @route GET /api/orders
+ */
+export const getAllOrders = asyncHandler(
+  async (req: Request, res: Response) => {
+    // TODO: Add role check here or in middleware
+    const orders = await orderService.getAllOrdersService();
+    res.status(200).json(orders);
+  }
+);

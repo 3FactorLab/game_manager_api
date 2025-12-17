@@ -30,4 +30,18 @@ const router = Router();
  */
 router.get("/my-orders", checkAuth, orderController.getMyOrders);
 
+/**
+ * @swagger
+ * /api/orders:
+ *   get:
+ *     summary: Get all orders (Admin only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all orders
+ */
+router.get("/", checkAuth, orderController.getAllOrders);
+
 export default router;

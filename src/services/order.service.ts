@@ -18,3 +18,14 @@ export const getUserOrders = async (userId: string) => {
   const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
   return orders;
 };
+
+/**
+ * Get all orders (Admin only)
+ */
+export const getAllOrdersService = async () => {
+  // Populate user details and game details for admin view
+  const orders = await Order.find()
+    .populate("user", "username email")
+    .sort({ createdAt: -1 });
+  return orders;
+};
