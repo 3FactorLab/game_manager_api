@@ -39,9 +39,18 @@ export const getDashboardStatsService = async () => {
   // Aggregate Revenue (Sum of 'totalAmount' in COMPLETED orders)
   const revenueAgg = await Order.aggregate([
     { $match: { status: "completed" } },
-    { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: "$totalAmount" },
+        count: { $sum: 1 },
+      },
+    },
   ]);
   const totalRevenue = revenueAgg[0]?.total || 0;
+  const completedOrdersCount = revenueAgg[0]?.count || 0;
+  const averageOrderValue =
+    completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;
 
   // 2. Top 5 Best Selling Games (by Revenue)
   const topSellingGames = await Order.aggregate([
@@ -124,12 +133,26 @@ export const getDashboardStatsService = async () => {
     },
   ]);
 
+  // 6. Genre Distribution (Catalog)
+  const genreDistribution = await Game.aggregate([
+    { $unwind: "$genres" },
+    {
+      $group: {
+        _id: "$genres",
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+    { $limit: 5 },
+  ]);
+
   return {
     kpis: {
       totalUsers,
       totalGames,
       totalOrders,
       totalRevenue,
+      averageOrderValue,
     },
     topGames: topSellingGames.map((g: any) => ({
       title: g._id,
@@ -139,6 +162,10 @@ export const getDashboardStatsService = async () => {
     platforms: platformDistribution.map((p: any) => ({
       name: p._id,
       count: p.count,
+    })),
+    genres: genreDistribution.map((g: any) => ({
+      name: g._id,
+      count: g.count,
     })),
     salesTrend: salesTrend.map((t: any) => ({
       date: `${t._id.month}/${t._id.year}`,
