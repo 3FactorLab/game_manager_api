@@ -102,6 +102,8 @@ flowchart TD
     GameService["🎮 Game Service<br/>(CRUD + Advanced Search)"]
     CollectionService["📚 Collection Service<br/>(UserGame CRUD)"]
     PaymentService["💳 Payment Service<br/>(Mock Checkout)"]
+    DiscoveryService["🔍 Discovery Service<br/>(Unified Search + Sync)"]
+    StatsService["📊 Stats Service<br/>(Analytics & Aggregations)"]
 
     %% Servicios de Integración
     RawgService["🔌 RAWG Service<br/>(Metadata + Caché)"]
@@ -144,6 +146,8 @@ flowchart TD
     Controller -->|2. Llama| GameService
     Controller -->|2. Llama| CollectionService
     Controller -->|2. Llama| PaymentService
+    Controller -->|2. Llama| DiscoveryService
+    Controller -->|2. Llama| StatsService
 
     %% Servicios Core interactúan con Modelos
     AuthService -->|CRUD| UserModel
@@ -160,6 +164,11 @@ flowchart TD
     PaymentService -->|Crea| OrderModel
     PaymentService -->|Actualiza| UserGameModel
     PaymentService -->|Notifica| MailService
+
+    %% Discovery usa Servicios de Integración
+    DiscoveryService -->|1. Busca Rawg| RawgService
+    DiscoveryService -->|2. Importa| AggregatorService
+    DiscoveryService -->|3. Lee Local| GameModel
 
     %% Servicios usan FileService
     AuthService -.->|Borra imágenes| FileService
@@ -189,6 +198,8 @@ flowchart TD
     GameService -->|6. Retorna| Controller
     CollectionService -->|6. Retorna| Controller
     PaymentService -->|6. Retorna| Controller
+    DiscoveryService -->|6. Retorna| Controller
+    StatsService -->|6. Retorna| Controller
     AggregatorService -->|6. Retorna| Controller
 
     Controller -->|7. Response JSON| Client
@@ -224,6 +235,8 @@ flowchart TD
     style GameService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
     style CollectionService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
     style PaymentService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+    style DiscoveryService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+    style StatsService fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
 
     %% Estilos - Servicios de Integración
     style RawgService fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
@@ -250,7 +263,18 @@ Para facilitar la lectura, hemos codificado los componentes por colores según s
 - 🟡 **Amarillo (Cliente/Exteriores)**: Lo que está "fuera" de nuestra app (Usuario, DTOs).
 - 🔴 **Rojo/Rosa (Seguridad)**: Middlewares críticos como Auth, Role y Error Handling.
 - 🔵 **Azul Intenso (Orquestación)**: Controladores y la documentación Swagger.
-- 🟦 **Celeste (Lógica Core)**: Servicios principales donde reside el negocio (`Auth`, `Game`, etc.).
+- **Público**: Cualquiera puede buscar juegos.
+- **Documentado con **Swagger\*\*.
+
+### `src/routes/stats.routes.ts`
+
+- Define `/api/stats`.
+- **Mix de seguridad**:
+  - `/public`: Abierto.
+  - `/dashboard`: **Strict Admin Only** (usa `isAdmin` middleware).
+
+--- 🟦 **Celeste (Lógica Core)**: Servicios principales donde reside el negocio (`Auth`, `Game`, etc.).
+
 - 🟣 **Morado (Integración)**: Servicios que hablan con APIs externas y Uploads.
 - 🟢 **Verde (Datos)**: Modelos de Mongoose y la Base de Datos MongoDB.
 - 🟠 **Naranja (Auxiliares)**: Servicios de soporte como Cron y FileService.
@@ -737,7 +761,68 @@ flowchart TD
 
 > [!NOTE] > **Eficiencia**: Al filtrar primero por `user` (Stage 1), reducimos drásticamente el set de datos antes de hacer el costoso `$lookup` (Stage 2). Si filtráramos por género antes, tendríamos que escanear toda la colección de juegos.
 
----
+### 7. Motor de Descubrimiento (Unified Search)
+
+Implementamos un motor de búsqueda híbrido **"Eager Sync"** en `DiscoveryService`. El objetivo es que el usuario encuentre juegos aunque no existan en nuestra DB local.
+
+```mermaid
+sequenceDiagram
+    participant C as 👤 Client
+    participant DS as Discovery Service
+    participant RAWG as 🌐 RAWG API
+    participant AGG as 🎯 Aggregator
+    participant DB as 🗄️ MongoDB
+
+    C->>DS: search("Zelda")
+
+    par Parallel Search
+        DS->>DB: 1. find({ $or: [title, genre...] }) (Local)
+        DS->>RAWG: 2. search("Zelda") (Remote)
+    end
+
+    DB-->>DS: [LocalGames]
+    RAWG-->>DS: [RemoteResults]
+
+    Loop Sync Process
+        DS->>DS: Filter new games (not in DB)
+        DS->>AGG: 3. Import Full Data (Remote -> DB)
+        AGG->>DB: create(NewGame)
+    end
+
+    DS->>DS: 4. Merge Local + Imported
+    DS-->>C: Unified Result List
+```
+
+> [!TIP] > **Self-Healing Catalog**: Con cada búsqueda de usuario, nuestro catálogo local crece y "aprende". Si alguien busca "Elden Ring" y no lo tenemos, el sistema lo importa automáticamente en milisegundos y lo sirve en la misma respuesta. Las futuras búsquedas ya serán 100% locales y rápidas.
+
+### 8. Analytics & Dashboard (Big Data Lite)
+
+Para el Dashboard de Admin, no hacemos simples conteos. Usamos **Aggregation Pipelines** para extraer inteligencia financiera en tiempo real.
+
+```mermaid
+sequenceDiagram
+    participant Admin as 🛡️ Admin
+    participant C as StatsController
+    participant S as StatsService
+    participant DB as 🗄️ MongoDB
+
+    Admin->>C: GET /api/stats/dashboard
+    C->>S: getDashboardStats()
+
+    par Parallel Aggregations
+        S->>DB: 1. Sum Revenue (Orders)
+        S->>DB: 2. Group Top Selling (Games)
+        S->>DB: 3. Calc Monthly Trend (Orders)
+        S->>DB: 4. Count Platforms (Games)
+    end
+
+    DB-->>S: [AggregatedResults]
+    S->>S: Format & Calculate KPIs
+    S-->>C: { kpis, topGames, trends }
+    C-->>Admin: JSON Dashboard Data
+```
+
+> [!NOTE] > **Eficiencia**: Usamos `Promise.all` para lanzar todas las agregaciones en paralelo. MongoDB es muy eficiente procesando estas queries analíticas.
 
 ---
 

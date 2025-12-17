@@ -125,9 +125,28 @@ Busca juegos en la base de datos externa para obtener su ID.
 - **Auth:** 🔒 Requerida (Rol Admin).
 - **Param:** `id` (ID del juego en base de datos).
 
+### Eliminar Juego (`DELETE /api/games/{id}`)
+
+- **Auth:** 🔒 Requerida (Rol Admin).
+- **Param:** `id` (ID del juego en base de datos).
+
 ---
 
-## 📚 5. Colección Personal (Collection)
+## 🔍 5. Motor de Descubrimiento (Discovery)
+
+Endpoints para la búsqueda unificada y el "Eager Sync".
+
+### Búsqueda Inteligente (`GET /api/discovery`)
+
+Busca en MongoDB y RAWG simultáneamente. Si encuentra juegos nuevos, los importa.
+
+- **Auth:** Pública.
+- **Param:** `q` (Query de búsqueda, ej: "Zelda").
+- **Respuesta:** Lista unificada de juegos.
+
+---
+
+## 📚 6. Colección Personal (Collection)
 
 Gestiona la biblioteca de juegos del usuario (sus juegos guardados).
 
@@ -174,7 +193,7 @@ Modifica el estado o reseña de un juego en tu colección.
 
 ---
 
-## 💳 6. Pagos / Compras (Payments)
+## 💳 7. Pagos / Compras (Payments)
 
 ### Simular Compra (`POST /api/payments/checkout`)
 
@@ -193,7 +212,7 @@ Simula el proceso de pago para un carrito de compras.
 
 ---
 
-## 🧾 7. Órdenes (Orders)
+## 🧾 8. Órdenes (Orders)
 
 Gestiona el historial de compras del usuario.
 
@@ -211,6 +230,26 @@ Obtiene información específica de una orden individual.
 - **Auth:** 🔒 Requerida.
 - **Param:** `id` (ID de la orden).
 - **Importante:** Solo puedes ver tus propias órdenes.
+
+- **Importante:** Solo puedes ver tus propias órdenes.
+
+---
+
+## 📊 9. Estadísticas (Stats & Dashboard)
+
+### Stats Públicas (`GET /api/stats/public`)
+
+Obtiene contadores globales para el Home.
+
+- **Auth:** Pública.
+- **Respuesta:** `{ users: 150, games: 3200 }`.
+
+### Admin Dashboard (`GET /api/stats/dashboard`)
+
+KPIs financieros en tiempo real.
+
+- **Auth:** 🔒 Requerida (**Rol Admin**).
+- **Respuesta:** Revenue, Top Selling, Monthly Trends.
 
 ---
 

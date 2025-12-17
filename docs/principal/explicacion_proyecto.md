@@ -68,23 +68,49 @@ Aquí te detallo qué encontrarás en cada carpeta dentro de `src`:
 
 Imagina que alguien hace una petición `POST /api/auth/register`. Así fluye por el código:
 
-6. **Server (`server.ts`)** recibe la petición y ve que empieza por `/api/auth`. La manda al router de Auth.
-7. **Router (`routes/auth.routes.ts`)** ve que es `/register` y `POST`.
+1. **Server (`server.ts`)** recibe la petición y ve que empieza por `/api/auth`. La manda al router de Auth.
+2. **Router (`routes/auth.routes.ts`)** ve que es `/register` y `POST`.
    - Primero pasa por el **Validator** (`registerValidator`) para ver si el email es válido.
    - Si pasa, le entrega el control al **Controller**.
-8. **Controller (`controllers/auth.controller.ts`)** en la función `register()`:
+3. **Controller (`controllers/auth.controller.ts`)** en la función `register()`:
    - Recoge `email` y `password` del cuerpo de la petición.
    - Llama a `AuthService.registerUser(email, password)`.
-9. **Service (`services/auth.service.ts`)**:
+4. **Service (`services/auth.service.ts`)**:
    - Comprueba si el email ya existe en la DB.
    - Encripta la contraseña (hashing).
    - Crea el usuario usando el **Model**.
-10. **Model (`models/User.ts`)**: Guarda el documento JSON en MongoDB.
-11. **De vuelta**: El Servicio retorna el usuario creado -> El Controlador recibe el usuario y responde con un JSON `201 Created` al cliente.
+5. **Model (`models/User.ts`)**: Guarda el documento JSON en MongoDB.
+6. **De vuelta**: El Servicio retorna el usuario creado -> El Controlador recibe el usuario y responde con un JSON `201 Created` al cliente.
 
 ---
 
-## 5. Tecnologías que debes conocer aquí
+---
+
+## 5. Feature Estrella: Búsqueda Unificada (Discovery) 🌟
+
+¿Por qué limitarnos a buscar en nuestra base de datos local?
+
+Hemos implementado un **Motor de Descubrimiento Híbrido**:
+
+1. **Búsqueda Local**: Instantánea (`<50ms`). Busca en tu catálogo existente.
+2. **Búsqueda Remota**: Si el usuario busca algo que no tenemos, consultamos a la API de RAWG en tiempo real.
+3. **Eager Sync (Sincronización Ansiosa)**: Si encontramos un juego nuevo en la API externa, **lo importamos automáticamente y lo guardamos en tu DB** mientras respondemos al usuario.
+
+**Resultado**: Tu catálogo crece solo, orgánicamente, basado en lo que tus usuarios buscan.
+
+## 6. Dashboard Analytics (Stats) 📊
+
+Para el Admin, hemos creado un cerebro financiero. No hacemos simples "count()". Usamos **Aggregation Pipelines** de MongoDB para calcular en tiempo real:
+
+- 💰 **Ingresos Totales**: Suma de todas las órdenes completadas.
+- 🏆 **Top Selling**: Juegos más vendidos agrupados por cantidad.
+- 📈 **Tendencias**: Ventas agrupadas por mes para ver la evolución del negocio.
+
+Esto convierte al backend en una pequeña herramienta de BI (Business Intelligence).
+
+---
+
+## 7. Tecnologías que debes conocer aquí
 
 - **Mongoose**: Librería para hablar con MongoDB de forma fácil. Usamos **Strict Typing** para evitar errores.
 - **JWT (Json Web Tokens)**: El "carnet de identidad" digital que usamos para saber quién es quién en cada petición.

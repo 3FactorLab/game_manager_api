@@ -118,6 +118,20 @@ Verifican la lógica de propiedad y deseo del usuario.
 - **`payment.service.test.ts`**: Verifica la creación de órdenes y el acceso a la librería.
 - **`order.integration.test.ts`**: Verifica el endpoint de Simulación de Compra (`/checkout/simulate`) y el historial de pedidos (`/my-orders`).
 
+### 🔍 Tests de Descubrimiento (Híbridos)
+
+- **`tests/integration/discovery.integration.test.ts`**:
+  - **Testing Strategy**: Mockeamos `rawg.service.ts` y `game-aggregator.service.ts` para evitar dependencias de red.
+  - **Local vs Remote**: Probamos que si el juego existe en MongoDB, se devuelve directamente.
+  - **Eager Sync**: Probamos la lógica crítica: si un juego solo existe en RAWG, el sistema debe importarlo a MongoDB automáticamente durante la búsqueda.
+
+### 📊 Tests de Estadísticas (Analytics & Security)
+
+- **`tests/integration/stats.integration.test.ts`**:
+  - **Public Endpoint**: Valida `/api/stats/public` (contadores globales).
+  - **Admin Dashboard**: Valida `/api/stats/dashboard` y cálculos de ingresos.
+  - **Security (RBAC)**: Verifica explícitamente que los usuarios NO-ADMIN reciben un `403 Forbidden` al intentar acceder al Dashboard.
+
 ### 📁 Tests de Archivos (Media)
 
 Verifican la subida de imágenes y avatares (Multer).

@@ -174,6 +174,15 @@ La lógica de negocio pura. El cerebro.
 - **Funciones**: `createCheckoutSession`, `processPayment`.
 - **Lógica**: Crea una Orden de compra y añade los juegos a la colección del usuario automáticamente.
 
+### `src/services/discovery.service.ts`
+
+- **Qué hace**: Búsqueda Unificada (Unified Search).
+- **Lógica "Eager Sync"**:
+  1. Busca en local (MongoDB).
+  2. Busca en remoto (RAWG).
+  3. Si encuentra juegos nuevos en RAWG, los **importa automáticamente** en tiempo real.
+  4. Devuelve una lista combinada. ¡El usuario nunca sabe que el juego no existía hace 1 segundo!
+
 ---
 
 ## 📂 7. Controladores (`src/controllers/`)
@@ -199,6 +208,11 @@ Los coordinadores HTTP.
 
 - **Qué hace**: Gestiona el proceso de checkout.
 - **Endpoint**: `POST /api/payments/checkout`.
+
+### `src/controllers/discovery.controller.ts`
+
+- **Qué hace**: Gestiona la búsqueda global.
+- **Detalle**: Recibe `?q=Zelda`, llama al `DiscoveryService` y devuelve resultados mixtos (locales + importados).
 
 ---
 
@@ -231,6 +245,12 @@ El mapa de URLs.
 
 - Define `/my-orders`.
 - Permite al usuario ver su historial de compras.
+
+### `src/routes/discovery.routes.ts`
+
+- Define `/api/discovery`.
+- **Público**: Cualquiera puede buscar juegos.
+- Documentado con **Swagger**.
 
 ---
 
@@ -438,6 +458,8 @@ Nuestra red de seguridad.
 - **`auth.refresh.test.ts`**: Valida la seguridad de la rotación de tokens y detección de robos.
 - **`rawg.service.test.ts` y `steam.service.test.ts`**: Verifican que la conexión con APIs externas funciona.
 - **`order.integration.test.ts`**: Prueba el flujo completo de compra (Mock) y el historial de pedidos.
+- **`discovery.integration.test.ts`**: Valida la búsqueda unificada y el "Eager Sync" (importación automática de RAWG).
+- **`stats.integration.test.ts`**: Valida los KPIs del Dashboard y asegura que solo los Admins tengan acceso.
 - **`validation.test.ts`**: Asegura que los DTOs rechacen datos basura (Zod).
 
 ---

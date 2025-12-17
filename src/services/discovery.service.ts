@@ -211,10 +211,6 @@ export const searchAndSync = async (
       results: unifiedResults,
       source: "mixed",
     };
-    return {
-      results: unifiedResults,
-      source: "mixed",
-    };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
