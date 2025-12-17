@@ -5,10 +5,11 @@
 import { User, UserRole } from "../models";
 import RefreshToken from "../models/refreshToken.model";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import crypto from "crypto";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/env";
 import { JwtPayload } from "../middleware";
-import { RegisterUserDto, UpdateUserDto } from "../dtos";
+import { RegisterUserDto, UpdateUserDto, PaginatedUsersDto } from "../dtos";
 import { hashPassword, comparePassword } from "../utils/password.util";
 import { AppError } from "../utils/AppError";
 import { deleteFile } from "./file.service";
@@ -230,14 +231,16 @@ export const getAllUsersService = async (
   page: number = 1,
   limit: number = 20,
   query: string = ""
-) => {
+): Promise<PaginatedUsersDto> => {
   const skip = (page - 1) * limit;
 
-  // Search filter
-  const filter: any = {};
+  // Build filter - using Record type for Mongoose compatibility
+  const filter: Record<string, unknown> = {};
   if (query) {
-    const regex = { $regex: query, $options: "i" };
-    filter.$or = [{ username: regex }, { email: regex }];
+    filter.$or = [
+      { username: { $regex: query, $options: "i" } },
+      { email: { $regex: query, $options: "i" } },
+    ];
   }
 
   const users = await User.find(filter)
@@ -249,13 +252,16 @@ export const getAllUsersService = async (
   const total = await User.countDocuments(filter);
 
   return {
-    data: users,
-    pagination: {
-      total,
-      pages: Math.ceil(total / limit),
-      page,
-      limit,
-    },
+    users: users.map((u) => ({
+      _id: u._id.toString(),
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      createdAt: u.createdAt,
+    })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
   };
 };
 
