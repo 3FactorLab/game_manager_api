@@ -83,7 +83,7 @@ describe("Game Service", () => {
       const callArgs = (Game.find as jest.Mock).mock.calls[0][0];
 
       expect(callArgs).toMatchObject({
-        genre: "Action",
+        genres: "Action",
         platforms: "Switch",
         onSale: true,
       });
@@ -97,14 +97,14 @@ describe("Game Service", () => {
       const mockDistinct = jest.spyOn(Game, "distinct");
 
       mockDistinct.mockImplementation(((field: any) => {
-        if (field === "genre") return Promise.resolve(["RPG", "Action", null]);
+        if (field === "genres") return Promise.resolve(["RPG", "Action", null]);
         if (field === "platforms") return Promise.resolve(["PC", "PS5", ""]);
         return Promise.resolve([]);
       }) as any);
 
       const result = await getFilters();
 
-      expect(Game.distinct).toHaveBeenCalledWith("genre");
+      expect(Game.distinct).toHaveBeenCalledWith("genres");
       expect(Game.distinct).toHaveBeenCalledWith("platforms");
       expect(result).toEqual({
         genres: ["Action", "RPG"],

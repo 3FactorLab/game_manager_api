@@ -72,10 +72,18 @@ export const search = asyncHandler(async (req: Request, res: Response) => {
     order as "asc" | "desc",
     isOnSale ? true : undefined,
     maxPriceNum,
-    developer as string,
     publisher as string
   );
-  res.json(result);
+
+  res.json({
+    data: result.games,
+    pagination: {
+      total: result.total,
+      pages: result.totalPages,
+      page: result.page,
+      limit: limitNum,
+    },
+  });
 });
 
 // Get filters (Genres & Platforms)
