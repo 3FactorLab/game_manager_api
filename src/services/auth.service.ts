@@ -255,3 +255,17 @@ export const getAllUsersService = async (
     totalPages: Math.ceil(total / limit),
   };
 };
+
+// Update User Role (Admin)
+// Destination: Used by AuthController.changeRole (src/controllers/auth.controller.ts).
+export const updateUserRoleService = async (
+  userId: string,
+  newRole: string
+) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  // Cast string to UserRole enum to satisfy TypeScript
+  user.role = newRole as UserRole;
+  return await user.save();
+};

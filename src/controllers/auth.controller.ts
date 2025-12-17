@@ -12,6 +12,7 @@ import {
   refreshTokenService,
   getAllUsersService,
   getUserById,
+  updateUserRoleService,
 } from "../services/auth.service";
 import { RegisterUserDto, LoginUserDto, UpdateUserDto } from "../dtos";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -106,4 +107,20 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await getAllUsersService(page, limit, query);
   res.status(200).json(result);
+});
+
+// Change Role (Admin)
+// Destination: Used in src/routes/user.routes.ts (PUT /:id/role).
+export const changeRole = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  if (!role || !["user", "admin"].includes(role)) {
+    throw new AppError("Invalid role. Must be 'user' or 'admin'", 400);
+  }
+
+  const updatedUser = await updateUserRoleService(id, role);
+  res
+    .status(200)
+    .json({ message: "Role updated successfully", user: updatedUser });
 });

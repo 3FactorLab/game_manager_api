@@ -12,6 +12,7 @@ import {
   refreshToken,
   getUsers,
   getProfile,
+  changeRole,
 } from "../controllers/auth.controller";
 import {
   addToWishlist,
@@ -365,6 +366,36 @@ router.get("/", checkAuth, isAdmin, getUsers);
  *       - bearerAuth: []
  */
 router.delete("/:id", checkAuth, isAdmin, deleteUser);
+
+/**
+ * @swagger
+ * /api/users/{id}/role:
+ *   put:
+ *     summary: Change user role (Admin only)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       200:
+ *         description: Role updated
+ *       403:
+ *         description: Access denied
+ */
+router.put("/:id/role", checkAuth, isAdmin, changeRole);
 
 /**
  * @swagger
