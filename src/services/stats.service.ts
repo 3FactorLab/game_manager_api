@@ -68,6 +68,7 @@ export const getDashboardStatsService = async () => {
         _id: "$items.title", // Group by Title (Snapshot)
         gameId: { $first: "$items.game" },
         revenue: { $sum: "$items.price" },
+        unitPrice: { $first: "$items.price" }, // Get one instance of price
         salesCount: { $sum: 1 },
       },
     },
@@ -162,11 +163,13 @@ export const getDashboardStatsService = async () => {
       title: g._id,
       totalSold: g.salesCount,
       revenue: g.revenue,
+      unitPrice: g.unitPrice,
     })),
     monthlyTrends: salesTrend.map((t: any) => ({
       _id: `${t._id.year}-${String(t._id.month).padStart(2, "0")}`,
       sales: t.totalSales,
       revenue: t.totalSales,
+      orders: t.orderCount,
     })),
     // Restore other metrics for frontend usage
     platforms: platformDistribution.map((p: any) => ({
