@@ -100,6 +100,10 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 // Get All Users (Admin)
 // Destination: Used in src/routes/user.routes.ts (GET /).
 export const getUsers = asyncHandler(async (req: Request, res: Response) => {
-  const users = await getAllUsersService();
-  res.status(200).json(users);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const query = (req.query.query as string) || "";
+
+  const result = await getAllUsersService(page, limit, query);
+  res.status(200).json(result);
 });

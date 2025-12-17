@@ -226,6 +226,32 @@ export const getUserById = async (userId: string) => {
 
 // Get All Users (Admin)
 // Destination: Used by AuthController.getUsers (src/controllers/auth.controller.ts).
-export const getAllUsersService = async () => {
-  return await User.find().select("-password");
+export const getAllUsersService = async (
+  page: number = 1,
+  limit: number = 20,
+  query: string = ""
+) => {
+  const skip = (page - 1) * limit;
+
+  // Search filter
+  const filter: any = {};
+  if (query) {
+    const regex = { $regex: query, $options: "i" };
+    filter.$or = [{ username: regex }, { email: regex }];
+  }
+
+  const users = await User.find(filter)
+    .select("-password")
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 }); // Newest first
+
+  const total = await User.countDocuments(filter);
+
+  return {
+    users,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 };
