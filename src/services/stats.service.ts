@@ -7,18 +7,24 @@ import UserGame from "../models/userGame.model";
 import User from "../models/user.model";
 import Game from "../models/game.model";
 import Order from "../models/order.model";
-
-// ... (existing imports are fine, just adding UserGame at the top)
+import { StatsResponseDto } from "../dtos/stats.dto";
+import logger from "../utils/logger";
 
 /**
  * Public global stats (existing)
  */
-export const getGlobalStats = async () => {
+export const getGlobalStats = async (): Promise<StatsResponseDto> => {
+  logger.info("StatsService: Fetching global statistics");
+
   const [totalUsers, totalGames, totalCollections] = await Promise.all([
     User.countDocuments(),
     Game.countDocuments(),
-    Promise.resolve(0),
+    UserGame.countDocuments({ isOwned: true }),
   ]);
+
+  logger.info(
+    `StatsService: Stats fetched - Users: ${totalUsers}, Games: ${totalGames}, Collections: ${totalCollections}`
+  );
 
   return {
     totalUsers,
@@ -39,20 +45,12 @@ export const getDashboardStatsService = async () => {
   // Aggregate Revenue (Sum of 'totalAmount' in COMPLETED orders)
   const revenueAgg = await Order.aggregate([
     { $match: { status: "completed" } },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: "$totalAmount" },
-        count: { $sum: 1 },
-      },
-    },
+    { $group: { _id: null, total: { $sum: "$totalAmount" } } },
   ]);
   const totalRevenue = revenueAgg[0]?.total || 0;
-  const completedOrdersCount = revenueAgg[0]?.count || 0;
-  const averageOrderValue =
-    completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;
 
   // 2. Top 5 Best Selling Games (by Revenue)
+  // We need to unwind items, then group by game title/id
   const topSellingGames = await Order.aggregate([
     { $match: { status: "completed" } },
     { $unwind: "$items" },
@@ -69,6 +67,7 @@ export const getDashboardStatsService = async () => {
   ]);
 
   // 3. Platform Distribution
+  // Games have a "platforms" array of strings
   const platformDistribution = await Game.aggregate([
     { $unwind: "$platforms" },
     {
@@ -133,48 +132,30 @@ export const getDashboardStatsService = async () => {
     },
   ]);
 
-  // 6. Genre Distribution (Catalog)
-  const genreDistribution = await Game.aggregate([
-    { $unwind: "$genres" },
-    {
-      $group: {
-        _id: "$genres",
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { count: -1 } },
-    { $limit: 5 },
-  ]);
-
   return {
     kpis: {
       totalUsers,
       totalGames,
       totalOrders,
       totalRevenue,
-      averageOrderValue,
     },
-    topGames: topSellingGames.map((g: any) => ({
-      title: g._id,
-      revenue: g.revenue,
-      sales: g.salesCount,
+    topGames: topSellingGames.map((g) => ({
+      title: g._id as string,
+      revenue: g.revenue as number,
+      sales: g.salesCount as number,
     })),
-    platforms: platformDistribution.map((p: any) => ({
-      name: p._id,
-      count: p.count,
+    platforms: platformDistribution.map((p) => ({
+      name: p._id as string,
+      count: p.count as number,
     })),
-    genres: genreDistribution.map((g: any) => ({
-      name: g._id,
-      count: g.count,
-    })),
-    salesTrend: salesTrend.map((t: any) => ({
+    salesTrend: salesTrend.map((t) => ({
       date: `${t._id.month}/${t._id.year}`,
-      sales: t.totalSales,
-      orders: t.orderCount,
+      sales: t.totalSales as number,
+      orders: t.orderCount as number,
     })),
-    libraryStats: libraryStats.map((l: any) => ({
-      title: l.title,
-      count: l.count,
+    libraryStats: libraryStats.map((l) => ({
+      title: l.title as string,
+      count: l.count as number,
     })),
   };
 };

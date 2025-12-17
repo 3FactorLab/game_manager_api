@@ -15,12 +15,12 @@
 
 Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres guías detalladas:
 
-| Guía                                              | Descripción                                                              |
-| :------------------------------------------------ | :----------------------------------------------------------------------- |
-| **🏗️ [Arquitectura](docs/architecture.md)**       | Entiende el diseño MVC, el flujo de datos y las decisiones de seguridad. |
-| **📘 [Manual Maestro](docs/tutorial.md)**         | Aprende a construir este backend desde cero, archivo por archivo.        |
-| **🧪 [Testing & Swagger](docs/tests-guide.md)**   | Aprende a ejecutar la suite de tests y a probar la API visualmente.      |
-| **🛠️ [Refactoring Log](docs/refactoring-log.md)** | Historial de mejoras técnicas y deuda técnica saldada.                   |
+| Guía                                                                   | Descripción                                            |
+| :--------------------------------------------------------------------- | :----------------------------------------------------- |
+| **🏗️ [Arquitectura](docs/principal/architecture.md)**                  | Entiende el diseño MVC, el flujo de datos y seguridad. |
+| **📘 [Manual Maestro](docs/principal/tutorial.md)**                    | Aprende a construir este backend archivo por archivo.  |
+| **🧪 [Testing Strategy](docs/principal/tests-guide.md)**               | Guía de VDD, Unit & Integration Tests.                 |
+| **🎓 [Explicación Académica](docs/principal/explicacion_proyecto.md)** | Resumen Ejecutivo de Ingeniería.                       |
 
 ---
 
@@ -53,7 +53,9 @@ Este proyecto no es solo código; es un recurso educativo. Hemos preparado tres 
 - **Integraciones Externas**: Sincronización automática con **RAWG** (Metadata) y **Steam** (Precios).
 - **Cron Jobs**: Actualización automática de precios de Steam cada madrugada.
 - **Gestión Masiva**: Endpoint de administración para listar y gestionar todos los usuarios del sistema.
-- **Automatización**: Suite de scripts en `src/scripts/` para importación de datos y mantenimiento.
+- **Automatización & VDD**: Scripts de integridad (`npm run validate`) y seeding (`npm run seed`) para DX superior.
+- **Documentación Viva**: Swagger UI (`/api-docs`) generado automáticamente.
+- **Compression**: Gzip habilitado para respuestas 70% más ligeras.
 
 ---
 

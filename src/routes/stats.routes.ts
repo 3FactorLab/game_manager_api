@@ -5,6 +5,7 @@
 import express from "express";
 import { getStats, getDashboardStats } from "../controllers/stats.controller";
 import checkAuth from "../middleware/auth.middleware";
+import { isAdmin } from "../middleware/role.middleware";
 
 const router = express.Router();
 
@@ -48,7 +49,9 @@ router.get("/public", getStats);
  *     responses:
  *       200:
  *         description: Dashboard statistics
+ *       403:
+ *         description: Admin access required
  */
-router.get("/dashboard", checkAuth, getDashboardStats);
+router.get("/dashboard", checkAuth, isAdmin, getDashboardStats);
 
 export default router;

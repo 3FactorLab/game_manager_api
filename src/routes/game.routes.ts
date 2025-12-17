@@ -309,7 +309,6 @@ router.put(
   checkAuth,
   isAdmin,
   upload.single("image"),
-  upload.single("image"),
   validateZod(updateGameSchema),
   updateGame
 );

@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../../server";
-import { User, UserRole } from "../../models";
+import { User, UserRole, IUser } from "../../models";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config/env";
@@ -58,15 +58,18 @@ describe("User Management Routes", () => {
     it("should allow Admin to get all users", async () => {
       const res = await request(app)
         .get("/api/users")
-        .set("Authorization", `Bearer ${adminToken}`);
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200);
 
-      expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.length).toBeGreaterThanOrEqual(2); // At least the 2 we created
+      expect(Array.isArray(res.body.users)).toBe(true);
+      expect(res.body.users.length).toBeGreaterThanOrEqual(2); // At least the 2 we created
+      expect(res.body).toHaveProperty("total");
+      expect(res.body).toHaveProperty("page");
+      expect(res.body).toHaveProperty("totalPages");
 
       // Check user structure
-      const fetchedUser = res.body.find(
-        (u: any) => u.email === "user_mgmt@test.com"
+      const fetchedUser = res.body.users.find(
+        (u: IUser) => u.email === "user_mgmt@test.com"
       );
       expect(fetchedUser).toBeDefined();
       expect(fetchedUser).not.toHaveProperty("password"); // Security check
