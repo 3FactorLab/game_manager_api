@@ -16,7 +16,7 @@ export interface UnifiedGame {
   image: string;
   price?: number; // Only for Local games (or fetched external ones)
   currency?: string;
-  genre: string; // [FIX] Added genre
+  genres: string[]; // [FIX] Corrected to array to match Mongoose Schema
   stats?: {
     score?: number;
     rating?: number;

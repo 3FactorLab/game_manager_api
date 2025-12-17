@@ -32,16 +32,18 @@ export const searchAndSync = async (
     const localQuery: any = {
       $or: [
         { title: { $regex: query, $options: "i" } },
-        { genre: { $regex: query, $options: "i" } },
+        { genres: { $regex: query, $options: "i" } }, // Search in genres array
         { developer: { $regex: query, $options: "i" } }, // Search by Developer
         { platforms: { $regex: query, $options: "i" } }, // Search by Platform
       ],
     };
 
     // Apply Local Filters
+    // Apply Local Filters
     if (filters) {
       if (filters.genre) {
-        localQuery.genre = { $regex: filters.genre, $options: "i" };
+        // Filter by specific genre in the array
+        localQuery.genres = { $regex: filters.genre, $options: "i" };
       }
       if (filters.developer) {
         localQuery.developer = { $regex: filters.developer, $options: "i" };
@@ -96,7 +98,7 @@ export const searchAndSync = async (
           price: completeData.price || 0,
           currency: completeData.currency || "USD",
           platforms: completeData.platforms,
-          genre: completeData.genres || "Unknown",
+          genres: completeData.genres || [], // [FIX] Map to genres array
           type: "game",
           releaseDate: completeData.released
             ? completeData.released.toISOString()
@@ -139,12 +141,13 @@ export const searchAndSync = async (
 
       // Filter by Genre
       if (filters.genre) {
-        if (
-          !game.genre ||
-          !game.genre.toLowerCase().includes(filters.genre.toLowerCase())
-        ) {
-          return false;
-        }
+        // Check if ANY of the game's genres matches the filter
+        const genreMatch =
+          game.genres &&
+          game.genres.some((g: string) =>
+            g.toLowerCase().includes(filters.genre!.toLowerCase())
+          );
+        if (!genreMatch) return false;
       }
 
       // Filter by Developer
@@ -179,7 +182,7 @@ export const searchAndSync = async (
       image: game.image || "",
       price: game.price,
       currency: game.currency,
-      genre: game.genre, // [FIX] Added genre mapping
+      genres: game.genres || [], // [FIX] Map genres array
       stats: {
         score: game.score,
         rating: game.metacritic,
@@ -192,6 +195,10 @@ export const searchAndSync = async (
       platforms: game.platforms,
     }));
 
+    return {
+      results: unifiedResults,
+      source: "mixed",
+    };
     return {
       results: unifiedResults,
       source: "mixed",
