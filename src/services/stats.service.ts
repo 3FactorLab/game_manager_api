@@ -3,9 +3,12 @@
  * @description Service for calculating global and dashboard statistics.
  * Aggregates data from Users, Games, and Orders collections.
  */
+import UserGame from "../models/userGame.model";
 import User from "../models/user.model";
 import Game from "../models/game.model";
 import Order from "../models/order.model";
+
+// ... (existing imports are fine, just adding UserGame at the top)
 
 /**
  * Public global stats (existing)
@@ -14,9 +17,6 @@ export const getGlobalStats = async () => {
   const [totalUsers, totalGames, totalCollections] = await Promise.all([
     User.countDocuments(),
     Game.countDocuments(),
-    // Roughly estimating collections by summing user libraries could be expensive,
-    // so we might stick to public simple counts or cached values.
-    // For now, let's keep it simple as implemented before or just return 0 if not tracked.
     Promise.resolve(0),
   ]);
 
@@ -44,7 +44,6 @@ export const getDashboardStatsService = async () => {
   const totalRevenue = revenueAgg[0]?.total || 0;
 
   // 2. Top 5 Best Selling Games (by Revenue)
-  // We need to unwind items, then group by game title/id
   const topSellingGames = await Order.aggregate([
     { $match: { status: "completed" } },
     { $unwind: "$items" },
@@ -61,7 +60,6 @@ export const getDashboardStatsService = async () => {
   ]);
 
   // 3. Platform Distribution
-  // Games have a "platforms" array of strings
   const platformDistribution = await Game.aggregate([
     { $unwind: "$platforms" },
     {
@@ -71,9 +69,59 @@ export const getDashboardStatsService = async () => {
       },
     },
     { $sort: { count: -1 } },
-    // Limit to top 6 to avoid clutter, label others as 'Other' if needed?
-    // For now, let's just return top 8.
     { $limit: 8 },
+  ]);
+
+  // 4. Sales Trend (Last 12 Months)
+  const salesTrend = await Order.aggregate([
+    {
+      $match: {
+        status: "completed",
+        createdAt: {
+          $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+        },
+        totalSales: { $sum: "$totalAmount" },
+        orderCount: { $sum: 1 },
+      },
+    },
+    { $sort: { "_id.year": 1, "_id.month": 1 } },
+  ]);
+
+  // 5. Most Popular in Libraries (Owned)
+  // We need to lookup the game title since UserGame only has game ID
+  const libraryStats = await UserGame.aggregate([
+    { $match: { isOwned: true } },
+    {
+      $group: {
+        _id: "$game",
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+    { $limit: 5 },
+    {
+      $lookup: {
+        from: "games",
+        localField: "_id",
+        foreignField: "_id",
+        as: "gameDetails",
+      },
+    },
+    { $unwind: "$gameDetails" },
+    {
+      $project: {
+        title: "$gameDetails.title",
+        count: 1,
+      },
+    },
   ]);
 
   return {
@@ -83,14 +131,23 @@ export const getDashboardStatsService = async () => {
       totalOrders,
       totalRevenue,
     },
-    topGames: topSellingGames.map((g) => ({
+    topGames: topSellingGames.map((g: any) => ({
       title: g._id,
       revenue: g.revenue,
       sales: g.salesCount,
     })),
-    platforms: platformDistribution.map((p) => ({
+    platforms: platformDistribution.map((p: any) => ({
       name: p._id,
       count: p.count,
+    })),
+    salesTrend: salesTrend.map((t: any) => ({
+      date: `${t._id.month}/${t._id.year}`,
+      sales: t.totalSales,
+      orders: t.orderCount,
+    })),
+    libraryStats: libraryStats.map((l: any) => ({
+      title: l.title,
+      count: l.count,
     })),
   };
 };
