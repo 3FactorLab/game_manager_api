@@ -249,10 +249,13 @@ export const getAllUsersService = async (
   const total = await User.countDocuments(filter);
 
   return {
-    users,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
+    data: users,
+    pagination: {
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+      limit,
+    },
   };
 };
 

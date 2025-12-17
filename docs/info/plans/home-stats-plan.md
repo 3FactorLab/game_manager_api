@@ -1,15 +1,25 @@
-# Plan: Real Statistics for Home Page
+# Plan: Real Statistics for Home Page (Finalized)
 
 This plan implements a real backend endpoint for global statistics (Total Users, Total Games, Total Collections) to replace hardcoded values on the Home Page.
 
-## User Review Required
+## 1. Standards Compliance Checklist
 
-> [!NOTE]
-> "Open Source" and "Zero Ads" metrics will remain hardcoded as requested. "Collections" will be calculated as the total count of `UserGame` documents (total games in all user libraries).
+> [!IMPORTANT]
+> This implementation MUST adhere to the following standards:
 
-## Proposed Changes
+- [ ] **Strict Typing**: No `any`. Use DTOs/Interfaces for all data.
+- [ ] **Backend Architecture**: Controller -> Service -> DTO pattern.
+- [ ] **Observability**: Use `logger` (Winston) for entry/exit points.
+- [ ] **Zero-Fragility Tests**:
+  - Backend: Use `jest.spyOn`. No fragile mocks.
+  - Frontend: Use **MSW** (Mock Service Worker). No `vi.mock` for services.
+- [ ] **Documentation**: Academic English JSDoc for all new files.
 
-### Backend (`/backend`)
+## 2. Backend Implementation (`/backend`)
+
+**Order of Execution:** DTO -> Service -> Controller -> Routes -> Server.
+
+### Step 2.1: Data Transfer Object
 
 #### [NEW] [stats.dto.ts](file:///Users/andydev/game manager v0/backend/src/dtos/stats.dto.ts)
 
@@ -18,74 +28,84 @@ This plan implements a real backend endpoint for global statistics (Total Users,
   export interface StatsResponseDto {
     totalUsers: number;
     totalGames: number;
-    totalCollections: number; // Total games added by users
+    totalCollections: number; // Total user-owned games
   }
   ```
-- **Compliance**: Strict typing, no values implementation (interface/type only).
+
+### Step 2.2: Business Logic
 
 #### [NEW] [stats.service.ts](file:///Users/andydev/game manager v0/backend/src/services/stats.service.ts)
 
-- `getGlobalStats()`:
-  - Count `User` documents.
-  - Count `Game` documents.
-  - Count `UserGame` documents (as "Collections" metric).
+- Implement `getGlobalStats()`:
+  - Count documents in `User`, `Game`, and `UserGame` models.
   - Return `StatsResponseDto`.
-- **Compliance**: Use `logger` for entry/exit (Winston). Academic English comments for all methods.
+  - **Compliance**: Add JSDoc and `logger.info()`.
+
+### Step 2.3: API Layer
 
 #### [NEW] [stats.controller.ts](file:///Users/andydev/game manager v0/backend/src/controllers/stats.controller.ts)
 
-- `getStats`: Call service and return data.
-- Use `asyncHandler`.
-- **Compliance**: No logic in controller, just DTO mapping/response. `asyncHandler` mandatory.
+- Implement `getStats`:
+  - Call `statsService.getGlobalStats()`.
+  - Return 200 OK with data.
+  - **Compliance**: Use `asyncHandler`. No business logic here.
 
 #### [NEW] [stats.routes.ts](file:///Users/andydev/game manager v0/backend/src/routes/stats.routes.ts)
 
-- `GET /`: Route to `getStats`.
-- **Compliance**: Swagger docs for the endpoint.
+- Define `GET /`: Route to `statsController.getStats`.
+- **Compliance**: Include Swagger documentation block.
+
+### Step 2.4: Registration
 
 #### [MODIFY] [server.ts](file:///Users/andydev/game manager v0/backend/src/server.ts)
 
-- Mount `/api/public/stats` -> `statsRoutes`.
+- Import `statsRoutes`.
+- Mount at `/api/public/stats`.
 
-### Frontend (`/frontend`)
+## 3. Frontend Implementation (`/frontend`)
+
+**Order of Execution:** Handler -> Service -> UI Component -> Test.
+
+### Step 3.1: MSW Handler (Testing Infra)
 
 #### [NEW] [handlers.ts](file:///Users/andydev/game manager v0/frontend/src/mocks/handlers.ts)
 
-- Add handler for `GET /api/public/stats`.
-- **Compliance**: Use MSW `http.get`. Return valid `StatsResponseDto`.
+- Add `http.get("/api/public/stats")` handler.
+- Return mock `StatsResponseDto`.
+
+### Step 3.2: Service Layer
 
 #### [NEW] [stats.service.ts](file:///Users/andydev/game manager v0/frontend/src/services/stats.service.ts)
 
-- `getGlobalStats()`: Fetch `/api/public/stats`.
-- **Compliance**: Typed return `Promise<StatsResponseDto>`. JSDoc.
+- Implement `getGlobalStats()`: Fetches `/api/public/stats`.
+- Return `Promise<StatsResponseDto>`.
+
+### Step 3.3: UI Component
 
 #### [MODIFY] [StatsSection.tsx](file:///Users/andydev/game manager v0/frontend/src/features/home/components/StatsSection.tsx)
 
-- Use `useQuery` with `statsService.getGlobalStats`.
-- Display real `totalUsers`, `totalGames` (remove older hack), and `totalCollections`.
-- Keep static "Open Source" and "Zero Ads".
-- **Compliance**: JSDoc for component. Strict props typing. remove any console.log.
+- Replace `gamesService.getCatalog` with `statsService.getGlobalStats`.
+- Update render logic to use real `totalUsers` and `totalCollections`.
+- Maintain hardcoded "Open Source" and "Zero Ads".
 
-#### [NEW] [StatsSection.test.tsx](file:///Users/andydev/game manager v0/frontend/src/features/home/components/StatsSection.test.tsx)
+### Step 3.4: Unit Testing (Boy Scout Rule)
 
-- **Compliance**: Unit test using `vi.spyOn` for service mocks. Verify numbers render correctly.
+#### [MODIFY] [StatsSection.test.tsx](file:///Users/andydev/game manager v0/frontend/src/features/home/components/StatsSection.test.tsx)
 
-## Verification Plan
+- **Refactor Goal**: Convert from `vi.mock` to **MSW**.
+- Remove `vi.mock("../../../services/games.service")`.
+- Use `server.use()` to inject specific test scenarios if needed.
+- Verify component renders loading state and final data correctly.
 
-### Automated Tests
+## 4. Verification Plan
 
-- **Backend Unit Test (`stats.service.test.ts`)**:
-  - **Compliance**: Use `jest.spyOn(User, 'countDocuments')`. NO `jest.mock`. Restore mocks after test.
-  - Mock models. Verify counts are returned correctly.
-- **Frontend Unit Test (`StatsSection.test.tsx`)**:
-  - **Refactor**: Remove `vi.mock("../../../services/games.service")`.
-  - **Compliance**: **Use MSW**. Do NOT mock service. Define `server.use(http.get("/api/public/stats", ...))` in test to simulate response.
-    - Render `StatsSection` wrapped in `QueryClientProvider` (use custom render util if exists or standard).
-    - Verify "Total Users", "Total Games" text appears.
-    - **Note (Testing Strategy)**: We adopt the "Boy Scout Rule". We convert THIS test to MSW because we are touching it. We do NOT refactor other existing tests in this task.
+### Automated Verification
+
+- **Backend**: Run `npm test src/services/stats.service.test.ts` (Create this test file with `jest.spyOn`).
+- **Frontend**: Run `npm test src/features/home/components/StatsSection.test.tsx`.
 
 ### Manual Verification
 
-1.  Run `npm run seed` (if available) or create users/games manually.
-2.  Check `/api/public/stats` via browser/curl.
-3.  Check Home Page stats match DB counts.
+1.  **Seed Data**: Ensure DB has users, games, and user-games.
+2.  **API Check**: `curl http://localhost:3500/api/public/stats` -> Expect JSON.
+3.  **UI Check**: Visit Home Page. Verify numbers match DB counts.

@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../../server";
-import { User, UserRole } from "../../models";
+import { User, UserRole, IUser } from "../../models";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config/env";
@@ -61,12 +61,13 @@ describe("User Management Routes", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.length).toBeGreaterThanOrEqual(2); // At least the 2 we created
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThanOrEqual(2); // At least the 2 we created
+      expect(res.body).toHaveProperty("pagination");
 
       // Check user structure
-      const fetchedUser = res.body.find(
-        (u: any) => u.email === "user_mgmt@test.com"
+      const fetchedUser = res.body.data.find(
+        (u: IUser) => u.email === "user_mgmt@test.com"
       );
       expect(fetchedUser).toBeDefined();
       expect(fetchedUser).not.toHaveProperty("password"); // Security check
