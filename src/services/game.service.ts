@@ -24,7 +24,7 @@ export const searchGames = async (
   publisher?: string
 ) => {
   // Use strict MongoDB filter type for safety during construction
-  const filter: Record<string, any> = {};
+  const filter: mongoose.mongo.Filter<IGame> = {};
 
   // Multi-field search using $or operator (Title, Genre, Developer, Publisher, Platform)
   // This allows finding "Cyber" -> "Cyberpunk" across multiple fields
@@ -68,20 +68,22 @@ export const searchGames = async (
   // This prevents duplicate games across pages when primary sort field has duplicates
   sortOptions["_id"] = 1;
 
-  // Cast to any to bypass Mongoose 9 type mismatch while keeping strict filter construction
-  // TODO: Cast to any due to Mongoose 9 type definition mismatch with strict filter construction
-  const games = await Game.find(filter as any)
+  // Execute query with strict types (no 'any' cast needed)
+  const games = await Game.find(filter as Record<string, unknown>)
     .sort(sortOptions)
     .skip(skip)
     .limit(limit);
 
-  const total = await Game.countDocuments(filter as any);
+  const total = await Game.countDocuments(filter as Record<string, unknown>);
 
   return {
-    games,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
+    data: games,
+    pagination: {
+      total,
+      pages: Math.ceil(total / limit),
+      page,
+      limit,
+    },
   };
 };
 
