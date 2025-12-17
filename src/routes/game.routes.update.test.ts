@@ -54,7 +54,7 @@ describe("PUT /api/games/:id", () => {
   beforeEach(async () => {
     const game = await Game.create({
       title: "Game to Update",
-      genre: "Action",
+      genres: ["Adventure"],
       platforms: ["PC"],
       price: 20,
       released: new Date(),
@@ -72,12 +72,12 @@ describe("PUT /api/games/:id", () => {
       .set("Authorization", `Bearer ${adminToken}`)
       .send({
         title: "Game to Update (Updated)",
-        genre: "Updated Genre",
+        genres: ["Updated Genre"],
       });
 
     expect(res.status).toBe(200);
     expect(res.body.game.title).toBe("Game to Update (Updated)");
-    expect(res.body.game.genre).toBe("Updated Genre");
+    expect(res.body.game.genres).toContain("Updated Genre");
 
     const game = await Game.findById(gameId);
     expect(game?.title).toBe("Game to Update (Updated)");

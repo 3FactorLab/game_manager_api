@@ -87,7 +87,7 @@ describe("DELETE /api/users/:id", () => {
     // 1. Create a game
     const game = await Game.create({
       title: "User Game",
-      genre: "Action",
+      genres: ["Action"],
       platforms: ["PC"],
       price: 60,
       released: new Date(),

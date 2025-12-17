@@ -12,7 +12,7 @@ Este documento recopila ideas, estrategias y mejoras técnicas identificadas dur
 
 ## 🛠️ Robustez de Datos (Dependencia de IDs)
 
-Actualmente, el sistema confía en que el `steamAppId` almacenado es correcto y perpetuo. Esto genera riesgos si Steam cambia IDs, retira juegos o si nuestra búsqueda inicial falló.
+Actualmente, el sistema confía en que el `steamAppId` almacenado es correcto y perpetuo. Esto genera riesgos si Steam cambia IDs, retira juegos o si nuestra búsqueda inicial falló.p.
 
 ### 1. Validación de Tipo en Cron Jobs
 
