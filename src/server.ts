@@ -99,7 +99,7 @@ app.use(express.json());
  * Protected routes require JWT authentication middleware.
  */
 app.use("/api/public/games", publicGameRoutes); // Public catalog access
-app.use("/api/public/stats", statsRoutes); // Public global stats
+app.use("/api/stats", statsRoutes); // Stats (Public & Private)
 app.use("/api/users", userRoutes); // User auth and profile management
 app.use("/api/games", gameRoutes); // Admin game management
 app.use("/api/collection", collectionRoutes); // User library and wishlist
