@@ -12,6 +12,7 @@ import gameRoutes from "./routes/game.routes";
 import collectionRoutes from "./routes/collection.routes";
 import paymentRoutes from "./routes/payment.routes";
 import orderRoutes from "./routes/order.routes";
+import discoveryRoutes from "./routes/discovery.routes";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
 import helmet from "helmet";
@@ -102,6 +103,7 @@ app.use("/api/games", gameRoutes); // Admin game management
 app.use("/api/collection", collectionRoutes); // User library and wishlist
 app.use("/api/payments", paymentRoutes); // Stripe payment processing
 app.use("/api/orders", orderRoutes); // Order history
+app.use("/api/discovery", discoveryRoutes); // Unified Search
 app.use("/uploads", express.static("uploads")); // Static file serving
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // API documentation
 

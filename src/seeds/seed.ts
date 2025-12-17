@@ -23,18 +23,14 @@ const seedGames = async () => {
 
     logger.info(`🌱 Seeding ${gamesData.length} Games (Upsert)...`);
 
-    for (const game of gamesData) {
-      await Game.findOneAndUpdate(
-        { title: game.title }, // Find by title
-        game, // Update with new data
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true,
-          runValidators: true,
-        } // Create if not exists, validate
-      );
-    }
+    logger.info("🧹 Clearing Games Collection...");
+    await Game.deleteMany({}); // Clear existing data
+
+    logger.info(`🌱 Seeding ${gamesData.length} Games (InsertMany)...`);
+
+    // Optional: Remove _id if you want fresh IDs, or keep them if preserving.
+    // Assuming JSON contains valid data.
+    await Game.insertMany(gamesData);
 
     logger.info("✅ Game Catalog Seeded Successfully (No data deleted)!");
     process.exit();

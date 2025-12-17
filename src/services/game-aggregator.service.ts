@@ -7,7 +7,11 @@
 import logger from "../utils/logger";
 import { AppError } from "../utils/AppError";
 import { getGameDetails as getRAWGDetails, GameDetails } from "./rawg.service";
-import { getSteamGameDetails, extractSteamAppId } from "./steam.service";
+import {
+  getSteamGameDetails,
+  extractSteamAppId,
+  searchSteamGames,
+} from "./steam.service";
 
 /**
  * Complete game data interface combining RAWG and Steam data
@@ -87,6 +91,21 @@ export const getCompleteGameData = async (
       }
     }
 
+    // Fallback: If no Steam App ID found via RAWG, search Steam by Name
+    if (!finalSteamAppId) {
+      try {
+        const searchId = await searchSteamGames(rawgData.name);
+        if (searchId) {
+          finalSteamAppId = searchId;
+          logger.info(
+            `Found Steam App ID via search for '${rawgData.name}': ${finalSteamAppId}`
+          );
+        }
+      } catch (searchError) {
+        logger.warn(`Fallback Steam search failed for '${rawgData.name}'`);
+      }
+    }
+
     // Get pricing from Steam if App ID is available
     if (finalSteamAppId) {
       try {
@@ -94,11 +113,21 @@ export const getCompleteGameData = async (
 
         if (steamData && steamData.price_overview) {
           completeData.steamAppId = finalSteamAppId;
-          completeData.price = steamData.price_overview.final;
+
+          // Price Normalization Heuristic
+          // Steam API usually returns cents (e.g. 4000 = 40.00).
+          // Rule: If value > 100, assume cents and divide by 100. Otherwise keep as is.
+          let finalPrice = steamData.price_overview.final;
+          let initialPrice = steamData.price_overview.initial;
+
+          if (finalPrice > 100) finalPrice = finalPrice / 100;
+          if (initialPrice > 100) initialPrice = initialPrice / 100;
+
+          completeData.price = finalPrice;
           completeData.currency = steamData.price_overview.currency;
           completeData.discount = steamData.price_overview.discount_percent;
           completeData.onSale = steamData.price_overview.discount_percent > 0;
-          completeData.originalPrice = steamData.price_overview.initial;
+          completeData.originalPrice = initialPrice;
         }
       } catch (error) {
         // Log but don't fail if Steam data is unavailable
