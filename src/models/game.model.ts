@@ -14,7 +14,7 @@ export interface IGame {
   _id: Types.ObjectId;
   // Core game information
   title: string;
-  genre: string;
+  genres: string[];
   platforms: string[];
   developer?: string;
   publisher?: string;
@@ -58,10 +58,10 @@ const gameSchema: Schema = new Schema({
     required: true,
     trim: true,
   },
-  genre: {
-    type: String,
+  genres: {
+    type: [String],
     required: true,
-    trim: true,
+    default: [],
   },
   platforms: {
     type: [String],
@@ -163,7 +163,7 @@ const gameSchema: Schema = new Schema({
 gameSchema.index(
   {
     title: "text",
-    genre: "text",
+    genres: "text",
     developer: "text",
     publisher: "text",
     platforms: "text",
@@ -171,7 +171,7 @@ gameSchema.index(
   {
     weights: {
       title: 10,
-      genre: 5,
+      genres: 5,
       developer: 3,
       publisher: 3,
       platforms: 1,

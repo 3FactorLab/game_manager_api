@@ -194,6 +194,49 @@ export const fetchPopularPCGames = async (
 };
 
 /**
+ * Fetch top games by date range and metacritic score
+ * Destination: Used by import-top-games.ts script.
+ */
+export const fetchTopGames = async (
+  startDate: string,
+  endDate: string,
+  page = 1,
+  pageSize = 40
+) => {
+  const cacheKey = `top_games:${startDate}:${endDate}:${page}:${pageSize}`;
+  const cachedData = rawgCache.get(cacheKey);
+
+  if (cachedData) {
+    logger.info(`Serving top games from cache (Page ${page})`);
+    return cachedData as any[];
+  }
+
+  try {
+    const params = {
+      dates: `${startDate},${endDate}`,
+      ordering: "-metacritic",
+      page: page,
+      page_size: pageSize,
+    };
+
+    const response = await rawgClient.get("/games", { params });
+
+    const results = response.data.results.map((game: RAWGGameListItem) => ({
+      rawgId: game.id,
+      title: game.name,
+      metacritic: game.metacritic,
+      released: game.released,
+    }));
+
+    rawgCache.set(cacheKey, results, 3600);
+    return results;
+  } catch (error) {
+    logger.error(`Error fetching top games: ${error}`);
+    throw new AppError("Failed to fetch top games", 500);
+  }
+};
+
+/**
  * Get complete details of a game by RAWG ID
  * Destination: Used by game-aggregator.service.ts and game.controller.ts.
  * Caching: Details cached for 24 hours.

@@ -38,7 +38,7 @@ describe("Order & Payment Integration Tests", () => {
     // Create Games
     const game1 = await Game.create({
       title: "Game 1",
-      genre: "Action",
+      genres: ["Action"],
       platforms: ["PC"],
       price: 10,
       currency: "USD",
@@ -46,7 +46,7 @@ describe("Order & Payment Integration Tests", () => {
     });
     const game2 = await Game.create({
       title: "Game 2",
-      genre: "RPG",
+      genres: ["RPG"],
       platforms: ["PS5"],
       price: 20,
       currency: "USD",

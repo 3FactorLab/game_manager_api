@@ -18,7 +18,7 @@ describe("Public Games API", () => {
     await Game.create([
       {
         title: "Cyberpunk 2077",
-        genre: "RPG",
+        genres: ["RPG"],
         platforms: ["PC"],
         developer: "CD Projekt Red",
         publisher: "CD Projekt",
@@ -28,7 +28,7 @@ describe("Public Games API", () => {
       },
       {
         title: "The Witcher 3",
-        genre: "RPG",
+        genres: ["RPG"],
         platforms: ["PS5"],
         developer: "CD Projekt Red",
         publisher: "CD Projekt",
@@ -38,7 +38,7 @@ describe("Public Games API", () => {
       },
       {
         title: "Stardew Valley",
-        genre: "Simulation",
+        genres: ["Simulation"],
         platforms: ["Switch"],
         developer: "ConcernedApe",
         publisher: "ConcernedApe",
@@ -48,7 +48,7 @@ describe("Public Games API", () => {
       },
       {
         title: "Celeste",
-        genre: "Platformer",
+        genres: ["Platformer"],
         platforms: ["Switch"],
         developer: "Maddy Makes Games",
         publisher: "Maddy Makes Games",

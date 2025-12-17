@@ -57,7 +57,7 @@ describe("DELETE /api/games/:id", () => {
   beforeEach(async () => {
     const game = await Game.create({
       title: "Game to Delete",
-      genre: "Action",
+      genres: ["Adventure"],
       platforms: ["PC"],
       price: 10,
       released: new Date(),

@@ -17,7 +17,7 @@ interface CompleteGameData {
   title: string;
   description: string;
   image: string;
-  genre: string;
+  genres: string[];
   platforms: string[];
   developer?: string;
   publisher?: string;
@@ -58,7 +58,7 @@ export const getCompleteGameData = async (
       title: rawgData.name,
       description: rawgData.description,
       image: rawgData.cover,
-      genre: rawgData.genres[0] || "Unknown",
+      genres: rawgData.genres || ["Unknown"],
       platforms: rawgData.platforms || ["Unknown"],
       developer: rawgData.developers[0],
       publisher: rawgData.publishers[0],

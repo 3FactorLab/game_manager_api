@@ -24,7 +24,7 @@ export const searchGames = async (
   publisher?: string
 ) => {
   // Use strict MongoDB filter type for safety during construction
-  const filter: mongoose.mongo.Filter<IGame> = {};
+  const filter: Record<string, any> = {};
 
   // Multi-field search using $or operator (Title, Genre, Developer, Publisher, Platform)
   // This allows finding "Cyber" -> "Cyberpunk" across multiple fields
@@ -32,7 +32,7 @@ export const searchGames = async (
     const regex = { $regex: query, $options: "i" };
     filter.$or = [
       { title: regex },
-      { genre: regex },
+      { genres: regex },
       { developer: regex },
       { publisher: regex },
       { platforms: regex },
@@ -40,7 +40,7 @@ export const searchGames = async (
   }
 
   // Exact filters
-  if (genre) filter.genre = genre;
+  if (genre) filter.genres = genre;
   if (platform) filter.platforms = platform;
   if (onSale) filter.onSale = true;
   if (developer) filter.developer = developer;
@@ -48,8 +48,7 @@ export const searchGames = async (
 
   // Price range filter
   if (maxPrice !== undefined) {
-    // Explicitly cast to any to avoid complex Mongoose Filter types on numeric fields
-    (filter as any).price = { $lte: maxPrice };
+    filter.price = { $lte: maxPrice };
   }
 
   const skip = (page - 1) * limit;
@@ -70,6 +69,7 @@ export const searchGames = async (
   sortOptions["_id"] = 1;
 
   // Cast to any to bypass Mongoose 9 type mismatch while keeping strict filter construction
+  // TODO: Cast to any due to Mongoose 9 type definition mismatch with strict filter construction
   const games = await Game.find(filter as any)
     .sort(sortOptions)
     .skip(skip)
@@ -88,7 +88,7 @@ export const searchGames = async (
 // Get distinct filters (Genres and Platforms)
 // Helper method for the frontend to populate filter dropdowns
 export const getFilters = async () => {
-  const genres = await Game.distinct("genre");
+  const genres = await Game.distinct("genres");
   const platforms = await Game.distinct("platforms");
   return {
     genres: genres.filter(Boolean).sort(),
