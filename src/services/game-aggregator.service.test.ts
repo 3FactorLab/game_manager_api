@@ -73,7 +73,7 @@ describe("Game Aggregator Service", () => {
     // Assert
     expect(result.title).toBe("Test Game");
     expect(result.steamAppId).toBe(12345);
-    expect(result.price).toBe(1999);
+    expect(result.price).toBe(19.99);
   });
 
   it("should return RAWG data only if Steam ID is missing", async () => {

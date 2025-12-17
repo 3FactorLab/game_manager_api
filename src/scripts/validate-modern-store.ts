@@ -24,18 +24,18 @@ const validate = async () => {
       true
     );
 
-    if (saleResults.games.length === 0) {
+    if (saleResults.data.length === 0) {
       logger.warn(
         "      ⚠️  No games found on sale (This might be expected if none are on sale, but verifying logic runs)."
       );
     } else {
-      const allSale = saleResults.games.every((g) => g.onSale === true);
+      const allSale = saleResults.data.every((g) => g.onSale === true);
       if (!allSale)
         throw new Error(
           "❌ Validation Failed: Game with onSale=false returned in onSale=true query."
         );
       logger.info(
-        `      ✅ ${saleResults.games.length} games on sale found. First: ${saleResults.games[0].title} (Price: ${saleResults.games[0].price})`
+        `      ✅ ${saleResults.data.length} games on sale found. First: ${saleResults.data[0].title} (Price: ${saleResults.data[0].price})`
       );
     }
 
@@ -53,16 +53,16 @@ const validate = async () => {
       10
     );
 
-    if (cheapResults.games.length === 0) {
+    if (cheapResults.data.length === 0) {
       logger.warn("      ⚠️  No games under $10 found.");
     } else {
-      const allCheap = cheapResults.games.every((g) => (g.price || 0) <= 10);
+      const allCheap = cheapResults.data.every((g) => (g.price || 0) <= 10);
       if (!allCheap)
         throw new Error(
           "❌ Validation Failed: Game > $10 returned in maxPrice query."
         );
       logger.info(
-        `      ✅ ${cheapResults.games.length} games under $10 found. Integity Check Passed.`
+        `      ✅ ${cheapResults.data.length} games under $10 found. Integity Check Passed.`
       );
     }
 

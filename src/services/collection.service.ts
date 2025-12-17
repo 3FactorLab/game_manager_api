@@ -53,11 +53,11 @@ export const getCollection = async (
   const filter: mongoose.mongo.Filter<IUserGame> = {
     user: new mongoose.Types.ObjectId(userId),
   };
-  if (status) filter.status = status as any;
+  if (status) filter.status = status as IUserGame["status"];
 
   // Aggregation pipeline for efficient filtering and pagination
   const pipeline: PipelineStage[] = [
-    { $match: filter as any }, // Filter by user and status first (performance)
+    { $match: filter as Record<string, unknown> }, // Filter by user and status first (performance)
     {
       $lookup: {
         from: "games",

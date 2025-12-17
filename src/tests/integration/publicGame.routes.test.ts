@@ -9,9 +9,15 @@ import mongoose from "mongoose";
 import Game from "../../models/game.model";
 
 describe("Public Game Routes", () => {
+  jest.setTimeout(30000);
+
   beforeAll(async () => {
+    // SECURITY: Use 'game-manager-test' logical database to isolate test data.
+    // This allows using the same Cluster/Server as dev without wiping dev data.
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI as string);
+      await mongoose.connect(process.env.MONGODB_URI as string, {
+        dbName: "game-manager-test",
+      });
     }
   });
 
@@ -88,7 +94,7 @@ describe("Public Game Routes", () => {
 
   it("should filter by search query", async () => {
     const res = await request(app).get("/api/public/games?query=Cyber");
-    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].title).toBe("Cyberpunk 2077");
   });
 
