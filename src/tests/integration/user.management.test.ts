@@ -58,15 +58,17 @@ describe("User Management Routes", () => {
     it("should allow Admin to get all users", async () => {
       const res = await request(app)
         .get("/api/users")
-        .set("Authorization", `Bearer ${adminToken}`);
+        .set("Authorization", `Bearer ${adminToken}`)
+        .expect(200);
 
-      expect(res.status).toBe(200);
-      expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThanOrEqual(2); // At least the 2 we created
-      expect(res.body).toHaveProperty("pagination");
+      expect(Array.isArray(res.body.users)).toBe(true);
+      expect(res.body.users.length).toBeGreaterThanOrEqual(2); // At least the 2 we created
+      expect(res.body).toHaveProperty("total");
+      expect(res.body).toHaveProperty("page");
+      expect(res.body).toHaveProperty("totalPages");
 
       // Check user structure
-      const fetchedUser = res.body.data.find(
+      const fetchedUser = res.body.users.find(
         (u: IUser) => u.email === "user_mgmt@test.com"
       );
       expect(fetchedUser).toBeDefined();

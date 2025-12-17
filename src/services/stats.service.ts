@@ -139,23 +139,23 @@ export const getDashboardStatsService = async () => {
       totalOrders,
       totalRevenue,
     },
-    topGames: topSellingGames.map((g: any) => ({
-      title: g._id,
-      revenue: g.revenue,
-      sales: g.salesCount,
+    topGames: topSellingGames.map((g) => ({
+      title: g._id as string,
+      revenue: g.revenue as number,
+      sales: g.salesCount as number,
     })),
-    platforms: platformDistribution.map((p: any) => ({
-      name: p._id,
-      count: p.count,
+    platforms: platformDistribution.map((p) => ({
+      name: p._id as string,
+      count: p.count as number,
     })),
-    salesTrend: salesTrend.map((t: any) => ({
+    salesTrend: salesTrend.map((t) => ({
       date: `${t._id.month}/${t._id.year}`,
-      sales: t.totalSales,
-      orders: t.orderCount,
+      sales: t.totalSales as number,
+      orders: t.orderCount as number,
     })),
-    libraryStats: libraryStats.map((l: any) => ({
-      title: l.title,
-      count: l.count,
+    libraryStats: libraryStats.map((l) => ({
+      title: l.title as string,
+      count: l.count as number,
     })),
   };
 };

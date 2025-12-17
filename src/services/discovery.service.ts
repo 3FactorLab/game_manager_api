@@ -3,11 +3,22 @@
  * @description Service for Unified Search (Discovery) with Eager Sync.
  * Searches RAWG, imports new games immediately via Aggregator, and returns local games.
  */
-import Game from "../models/game.model";
+import mongoose from "mongoose";
+import Game, { IGame } from "../models/game.model";
 import { searchGames as searchRAWG } from "./rawg.service";
 import { getCompleteGameData } from "./game-aggregator.service";
 import { UnifiedGame, DiscoveryResponse } from "../dtos/discovery.dto";
 import logger from "../utils/logger";
+
+/**
+ * Interface for RAWG game search results
+ */
+interface RAWGGameResult {
+  rawgId: number;
+  name: string;
+  released?: string;
+  background_image?: string;
+}
 
 /**
  * Normalizes a string for comparison (removes spaces, special chars, lowercase)
@@ -29,7 +40,7 @@ export const searchAndSync = async (
 
   try {
     // 1. Search Local DB First
-    const localQuery: any = {
+    const localQuery: Record<string, unknown> = {
       $or: [
         { title: { $regex: query, $options: "i" } },
         { genres: { $regex: query, $options: "i" } }, // Search in genres array
@@ -59,11 +70,12 @@ export const searchAndSync = async (
 
     // 2. Search RAWG (Broader search by title)
     // We search broadly to import potential matches, then strict filter later
-    let rawgResults: any[] = [];
+    let rawgResults: RAWGGameResult[] = [];
     try {
       rawgResults = await searchRAWG(query, 5); // [CHANGE] Removed filters arg
-    } catch (err: any) {
-      logger.warn(`DiscoveryService: RAWG search failed: ${err.message}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      logger.warn(`DiscoveryService: RAWG search failed: ${errorMessage}`);
       // Continue with just local results
     }
 
@@ -75,7 +87,7 @@ export const searchAndSync = async (
       localResults.map((g) => g.rawgId).filter((id) => id !== undefined)
     );
 
-    const gamesToImport = rawgResults.filter((rawgGame: any) => {
+    const gamesToImport = rawgResults.filter((rawgGame) => {
       const normTitle = normalizeTitle(rawgGame.name);
       return (
         !existingTitles.has(normTitle) && !existingRawgIds.has(rawgGame.rawgId)
@@ -83,7 +95,7 @@ export const searchAndSync = async (
     });
 
     // 4. Eager Import (Sync) using Aggregator
-    const importPromises = gamesToImport.map(async (rawgGame: any) => {
+    const importPromises = gamesToImport.map(async (rawgGame) => {
       try {
         const exists = await Game.exists({ rawgId: rawgGame.rawgId });
         if (exists) return null;
@@ -122,16 +134,16 @@ export const searchAndSync = async (
         });
 
         return await newGame.save();
-      } catch (importError: any) {
-        logger.error(
-          `Failed to import ${rawgGame.name}: ${importError.message}`
-        );
+      } catch (importError) {
+        const errorMessage =
+          importError instanceof Error ? importError.message : "Unknown error";
+        logger.error(`Failed to import ${rawgGame.name}: ${errorMessage}`);
         return null;
       }
     });
 
     const normalizedImports = (await Promise.all(importPromises)).filter(
-      (g): g is any => g !== null
+      (g): g is NonNullable<typeof g> => g !== null
     );
 
     // 6. Strict Post-Filtering (In-Memory) for Imported Games
@@ -164,7 +176,7 @@ export const searchAndSync = async (
 
       // Filter by Platform
       if (filters.platform) {
-        const platformMatch = game.platforms.some((p: string) =>
+        const platformMatch = game.platforms.some((p) =>
           p.toLowerCase().includes(filters.platform!.toLowerCase())
         );
         if (!platformMatch) return false;
@@ -203,8 +215,10 @@ export const searchAndSync = async (
       results: unifiedResults,
       source: "mixed",
     };
-  } catch (error: any) {
-    logger.error(`DiscoveryService Error: ${error.message}`);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    logger.error(`DiscoveryService Error: ${errorMessage}`);
     return { results: [], source: "local" };
   }
 };
