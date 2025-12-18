@@ -32,8 +32,11 @@ async function testRawgBehavior() {
 
 async function testLocalDb() {
   // Check if we have any game with developer 'Ubisoft' locally
-  const MONGO_URI =
-    process.env.MONGO_URI || "mongodb://localhost:27017/gamemanager";
+  const MONGO_URI = process.env.MONGO_URI;
+  if (!MONGO_URI) {
+    console.error("❌ Error: MONGO_URI is not defined in .env");
+    return;
+  }
   await mongoose.connect(MONGO_URI);
 
   const Game = mongoose.model(

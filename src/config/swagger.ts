@@ -3,6 +3,7 @@
  * @description Configures Swagger/OpenAPI documentation for the API.
  * Defines API metadata, security schemes, and reusable schemas.
  */
+import { PORT } from "./env";
 import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {
@@ -19,7 +20,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: "http://localhost:3500",
+        url: `http://localhost:${PORT}`,
         description: "Development server",
       },
     ],

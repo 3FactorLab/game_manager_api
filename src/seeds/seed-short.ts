@@ -6,8 +6,11 @@ import path from "path";
 
 dotenv.config();
 
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/game_manager_db";
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error("❌ Error: MONGO_URI is not defined in .env");
+  process.exit(1);
+}
 
 const seedGames = async () => {
   try {

@@ -4,8 +4,11 @@ require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 async function debugFilters() {
   console.log("🔍 Connecting to DB...");
-  const MONGO_URI =
-    process.env.MONGO_URI || "mongodb://localhost:27017/gamemanager";
+  const MONGO_URI = process.env.MONGO_URI;
+  if (!MONGO_URI) {
+    console.error("❌ Error: MONGO_URI is not defined in .env");
+    return;
+  }
   try {
     await mongoose.connect(MONGO_URI);
     console.log("✅ Connected.");
