@@ -71,7 +71,17 @@ const PORT = process.env.PORT || 3500;
  * 4. Rate Limiter: Prevents brute-force and DDoS attacks
  */
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // Local development
+      "https://3factorlab.github.io", // Production (GitHub Pages)
+    ],
+    credentials: true, // Allow cookies/headers
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "ngrok-skip-browser-warning"],
+  })
+);
 app.use(morgan("dev"));
 app.use(compression());
 
