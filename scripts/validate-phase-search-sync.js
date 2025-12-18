@@ -13,8 +13,7 @@ require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 const API_URL = "http://localhost:3500/api";
 const MONGO_URI =
-  process.env.MONGO_URI ||
-  "mongodb+srv://andy-dev:andymongodev@cluster-0.2xwgxs2.mongodb.net/";
+  process.env.MONGO_URI || "mongodb://localhost:27017/gamemanager";
 
 // Simple Game Schema for Verification
 const gameSchema = new Schema({
