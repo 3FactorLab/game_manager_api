@@ -319,3 +319,55 @@ flowchart TD
     style OrderModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
     style RefreshTokenModel fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
 ```
+
+---
+
+## 🌍 Despliegue Híbrido (Frontend Remoto + Backend Local)
+
+> **Nota Importante**: Esta configuración es **exclusiva para demos** o pruebas donde necesitas compartir el frontend con otros. 
+>
+> **Para el desarrollo diario, NO necesitas esto.** Puedes seguir ejecutando todo en local (Frontend en localhost:5173 + Backend en localhost:3500) y funcionará perfectamente sin internet ni túneles.
+
+Para demostraciones o presentaciones, utilizamos una arquitectura híbrida donde el **Frontend** está publicado en internet (GitHub Pages) pero consume datos de tu **Backend Local** a través de un túnel seguro (**Ngrok**).
+
+### 1. ¿Cómo funciona?
+
+1.  **Frontend**: Alojado en GitHub Pages (`https://tu-usuario.github.io/game_manager_front`).
+2.  **Backend**: Corre en tu ordenador (`localhost:3500`).
+3.  **El Puente (Ngrok)**: Crea una URL pública (`https://xyz.ngrok-free.app`) que redirige el tráfico de internet a tu puerto local 3500.
+
+### 2. Guía paso a paso para replicarlo
+
+#### Paso 1: Levantar el Backend
+En una terminal, inicia el servidor localmente:
+```bash
+cd game_manager_api
+npm run dev
+```
+
+#### Paso 2: Crear el Túnel
+En **otra** terminal, expón tu puerto 3500 a internet usando Ngrok:
+```bash
+ngrok http 3500
+```
+*Si no tienes ngrok instalado: `npm install -g ngrok` y regístrate en su web para obtener el auth token.*
+
+Copia la URL segura que te da (ejemplo: `https://a1b2-c3d4.ngrok-free.app`).
+
+#### Paso 3: Configurar el Frontend
+Para que el frontend sepa a dónde llamar, debemos actualizar la variable de entorno en GitHub.
+
+1.  Ve al repositorio del frontend en GitHub.
+2.  Entra en **Settings** > **Secrets and variables** > **Actions**.
+3.  Edita (o crea) el secreto `VITE_API_URL`.
+4.  Pega tu URL de Ngrok (ej: `https://a1b2-c3d4.ngrok-free.app`).
+5.  **Importante**: Vuelve a lanzar el workflow de despliegue ("Re-run job") para que coja el nuevo valor.
+
+### 3. Cerrar la conexión (Seguridad) 🔒
+
+Es **muy importante** cerrar el túnel cuando termines la demostración, ya que dejarlo abierto expone tu servidor local a internet.
+
+1.  Ve a la terminal de **Ngrok** y pulsa `Ctrl + C`.
+2.  Ve a la terminal del **Backend** y pulsa `Ctrl + C`.
+
+Al hacer esto, la URL pública deja de existir y tu ordenador vuelve a estar aislado y seguro. La web seguirá visible online, pero no cargará datos.
