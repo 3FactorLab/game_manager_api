@@ -1,6 +1,13 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3500/api";
+import dotenv from "dotenv";
+import path from "path";
+
+// Load .env from root
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+
+const PORT = process.env.PORT || 3500;
+const API_URL = `http://localhost:${PORT}/api`;
 const TIMESTAMP = Date.now();
 const USERNAME = `verify_admin_${TIMESTAMP}`;
 const EMAIL = `verify_${TIMESTAMP}@test.com`;
