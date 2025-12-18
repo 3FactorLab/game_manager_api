@@ -10,7 +10,8 @@
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit",
     "seed": "npx ts-node src/seeds/seed.ts",
     "seed-short": "npx ts-node src/seeds/seed-short.ts",
-    "update-screenshots": "ts-node src/scripts/update-screenshots.ts"
+    "update-screenshots": "ts-node src/scripts/update-screenshots.ts",
+    "prestart": "npm run build"
   },
   "keywords": [],
   "author": "",
