@@ -12,8 +12,11 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 const API_URL = "http://localhost:3500/api";
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/gamemanager";
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error("❌ Error: MONGO_URI is not defined in .env");
+  process.exit(1);
+}
 
 // Simple Game Schema for Verification
 const gameSchema = new Schema({
